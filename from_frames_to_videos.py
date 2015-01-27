@@ -8,7 +8,6 @@
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-
 # mkdir -p in python from http://stackoverflow.com/a/11860637/1716869
 import os, shutil
 import errno
@@ -62,7 +61,7 @@ def clip_frames_to_videos(path_of_clips, vid_fold='1_videos', nam='renamed', sup
     list_clips_0 = sorted(os.listdir(path_of_clips))
     list_clips = [x for x in list_clips_0 if x not in [nam, vid_fold]]
     path_of_clips_new = path_of_clips + nam + '/'; mkdir_p(path_of_clips_new);
-    path_videos = path_of_clips_new + vid_fold + '/';  mkdir_p(path_videos); 
+    path_videos = path_of_clips_new + vid_fold + '/';  mkdir_p(path_videos);
     try:									# try to do the call the imgtovid for every clip in parallel
         from joblib import Parallel, delayed
         Parallel(n_jobs=-1, verbose=4)(delayed(process_clip)(clip, path_of_clips, path_videos, nam, suppress_print) 
@@ -88,8 +87,7 @@ def process_clip(clip, path_of_clips, path_videos, nam='renamed', suppress_print
 # grigoris, 4/12/2014: Two functions that are used to write frames in a video using imgtovid. 
 # They should be used in case the frames are not sequential. Then it copies the clips and 
 # re-writes them in a sequential matter. 
-# Assumption: In the original folder, all the subfolders with more than 150 files, 
-# should contain images.
+# Assumption: In the original folder, the first object (in alphabetical order) should be an image.  
 
 def rename_frames(d):
     # The function renames the frames in the 'd' folder and re-writes them sequentially. 
@@ -101,15 +99,20 @@ def rename_frames(d):
         n = os.path.splitext(fr)[0]
         os.rename(d + fr, d + padd %i + ext)                    
 
- 
-def copy_folder_and_rename_frames(folder, dir_1, dir_2):
+import glob 
+def copy_folder_and_rename_frames(folder, dir_1, dir_2, min_images=2):
     _tmp_dir = dir_1 + folder
     if not(os.path.isdir(_tmp_dir)): return; 
     files = sorted(os.listdir(_tmp_dir))
-    if len(files) < 150: return;                              # TODO: dirty hack, should be fixed to check for images
-    rm_if_exists(dir_2 + folder); 
-    shutil.copytree(_tmp_dir, dir_2 + folder)
-    rename_frames(dir_2 + folder + '/'); 
+    #if len(files) < 150: print('The folder has too few files(' + str(len(files)) + '), skipped');return;                              # TODO: dirty hack, should be fixed to check for images
+    image_type = imgtovid.find_image_type(_tmp_dir, files[0])
+    images = glob.glob(_tmp_dir + '/*.' + image_type)
+    if len(images) < min_images: print('The folder has too few files(' + str(len(images)) + '), skipped');return;
+    print len(images)
+    fold_2 = dir_2 + folder
+    rm_if_exists(fold_2); 
+    shutil.copytree(_tmp_dir, fold_2)
+    rename_frames(fold_2 + '/'); 
 
 # def copy_and_rename_frames(dir_1, nam = 'renamed'):
 #     # For each subfolder that contains frames (images), copies them in the 'nam' directory
