@@ -61,7 +61,7 @@ def create_video(input_dir, n_zeros, output_fname,
     return subprocess.call(cmd)
 
 
-extensions = {'png', 'jpg', 'gif'}
+extensions = {'png', 'jpg', 'gif', 'jpeg'}
 from os.path import splitext
 def find_image_type(dirname, fname):
     try: 

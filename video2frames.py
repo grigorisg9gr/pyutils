@@ -28,6 +28,7 @@ def mkdir_p(path):
 
 import subprocess
 import shutil
+import re,string
 def clip_to_frames(clip_name, path_video, path_fr_0):
     """
     Accepts a clip file and converts it into individual frames by calling avconv. 
@@ -35,7 +36,8 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
     """
     if clip_name[-3:]!= type_v:
         print('Ignoring file ' + clip_name); return  
-    _name = clip_name; name = _name.replace(' ','')           # replace all empty spaces in the original file
+    #_name = clip_name; name = _name.replace(' ','')           # replace all empty spaces in the original file
+    pattern = re.compile('[^a-zA-Z0-9.]+'); name = pattern.sub('', clip_name); # strip all white spaces, quatation points, etc. 
     shutil.move(path_video + clip_name, path_video + name)
     path_frames = path_fr_0 + name[:-4] + '/'; mkdir_p(path_frames)
     p = subprocess.check_output(['avconv -i ' +  path_video + name + ' -f image2 ' + 
