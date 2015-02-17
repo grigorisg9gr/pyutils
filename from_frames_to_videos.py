@@ -100,14 +100,22 @@ def rename_frames(d):
         os.rename(d + fr, d + padd %i + ext)                    
 
 import glob 
+import warnings
 def copy_folder_and_rename_frames(folder, dir_1, dir_2, min_images=2):
     _tmp_dir = dir_1 + folder
-    if not(os.path.isdir(_tmp_dir)): return; 
+    if not(os.path.isdir(_tmp_dir)): 
+	warnings.warn('The path %s/ is empty\n'%_tmp_dir)
+	return; 
     files = sorted(os.listdir(_tmp_dir))
     #if len(files) < 150: print('The folder has too few files(' + str(len(files)) + '), skipped');return;                              # TODO: dirty hack, should be fixed to check for images
+    if len(files) == 0:
+	warnings.warn('There are no files in the %s/ dir\n'%_tmp_dir)
+	return
     image_type = imgtovid.find_image_type(_tmp_dir, files[0])
     images = glob.glob(_tmp_dir + '/*.' + image_type)
-    if len(images) < min_images: print('The folder has too few files(' + str(len(images)) + '), skipped');return;
+    if len(images) < min_images: 
+	print('The folder %s/ has too few files('%_tmp_dir + str(len(images)) + '), skipped');
+	return;
     print len(images)
     fold_2 = dir_2 + folder
     rm_if_exists(fold_2); 

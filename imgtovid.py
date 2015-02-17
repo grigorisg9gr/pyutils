@@ -69,6 +69,8 @@ def find_image_type(dirname, fname):
     except IOError:
 	print('Probably the first element in the folder is not an image, which is required')
 	raise
+    if image_type in extensions:
+	return image_type
     else:
 	import imghdr
 	type1 = imghdr.what(dirname + '/' + fname)
