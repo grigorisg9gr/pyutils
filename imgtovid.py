@@ -64,20 +64,23 @@ def create_video(input_dir, n_zeros, output_fname,
 extensions = {'png', 'jpg', 'gif', 'jpeg'}
 from os.path import splitext
 def find_image_type(dirname, fname):
-    try: 
-    	image_type = splitext(fname)[-1][1:] # Assumption that the first element is an image.
+    try:
+        image_type = splitext(fname)[-1][1:] # Assumption that the first element is an image.
     except IOError:
-	print('Probably the first element in the folder is not an image, which is required')
-	raise
+        print('Probably the first element in the folder is not an image, which is required')
+        raise
     if image_type in extensions:
-	return image_type
+        return image_type
     else:
-	import imghdr
-	type1 = imghdr.what(dirname + '/' + fname)
-	if type1 in extensions:
-	     return type1
-	else:
-	     raise Exception('Not supported type (extension) of image')
+        import imghdr
+        try:
+            type1 = imghdr.what(dirname + '/' + fname)
+        except IOError:
+            raise IOError('The file %s does not exist.\n' % (dirname + '/' + fname))
+        if type1 in extensions:
+            return type1
+        else:
+            raise Exception('Not supported type (extension) of image')
 
 
 def search_for_images(output_dir, dirname, fnames):
@@ -87,8 +90,8 @@ def search_for_images(output_dir, dirname, fnames):
         root, containing = path.split(dirname)
         image_names = [path.splitext(i)[0] for i in images]
         list_im = sorted([int(x) for x in image_names])
-	image_numbers = set(list_im)
-	expected = set(range(list_im[0], len(images) + list_im[0]))    
+        image_numbers = set(list_im)
+        expected = set(range(list_im[0], len(images) + list_im[0]))
         if image_numbers == expected:
             n_zeros = len(image_names[0])
             print ('{} has contiguous {} files'
@@ -96,9 +99,9 @@ def search_for_images(output_dir, dirname, fnames):
                 dirname, image_type, len(images) - 1, n_zeros)
             create_video(dirname, n_zeros, containing,
                          output_dir=output_dir, image_type=image_type)
-	else:
-	    print('Did not find the expected arithmetic sequence of images. '
-			'Potentially missing some images from the sequence')
+        else:
+            print('Did not find the expected arithmetic sequence of images. '
+			    'Potentially missing some images from the sequence')
 
 
 def imgtovid(input_dir, output_dir=None):
@@ -124,9 +127,9 @@ if __name__ == "__main__":
 
             dir/foo/bar/001.jpg  -> output/foo_bar.mp4
 
-	Should be called like this: 
+	    Should be called like this:
 		python imgtovid.py /dir/my_images -o /dir_output/ 
-	if the images are in the folder my_images. 
+	    if the images are in the folder my_images.
 
         Note that this does lead to degenerate cases if you use underscore
         folder names. Currently only supports jpg images but trivial to add

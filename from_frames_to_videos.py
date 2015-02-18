@@ -76,7 +76,7 @@ def clip_frames_to_videos(path_of_clips, vid_fold='1_videos', nam='renamed', sup
 def process_clip(clip, path_of_clips, path_videos, nam='renamed', suppress_print='True'):
     print('Preparing video for %s clip' % clip)
     copy_folder_and_rename_frames(clip, path_of_clips, path_of_clips + nam + '/')
-    path_clip = path_of_clips + nam + '/' + clip; 
+    path_clip = path_of_clips + nam + '/' + clip
     if suppress_print=='True':
         with suppress_stdout():
             call_imgtovid(path_clip, path_videos)
@@ -103,24 +103,24 @@ import glob
 import warnings
 def copy_folder_and_rename_frames(folder, dir_1, dir_2, min_images=2):
     _tmp_dir = dir_1 + folder
-    if not(os.path.isdir(_tmp_dir)): 
-	warnings.warn('The path %s/ is empty\n'%_tmp_dir)
-	return; 
+    if not(os.path.isdir(_tmp_dir)):
+        warnings.warn('The path %s/ is empty\n'%_tmp_dir)
+        return
     files = sorted(os.listdir(_tmp_dir))
     #if len(files) < 150: print('The folder has too few files(' + str(len(files)) + '), skipped');return;                              # TODO: dirty hack, should be fixed to check for images
     if len(files) == 0:
-	warnings.warn('There are no files in the %s/ dir\n'%_tmp_dir)
-	return
+        warnings.warn('There are no files in the %s/ dir\n'%_tmp_dir)
+        return
     image_type = imgtovid.find_image_type(_tmp_dir, files[0])
     images = glob.glob(_tmp_dir + '/*.' + image_type)
-    if len(images) < min_images: 
-	print('The folder %s/ has too few files('%_tmp_dir + str(len(images)) + '), skipped');
-	return;
+    if len(images) < min_images:
+        print('The folder %s/ has too few files('%_tmp_dir + str(len(images)) + '), skipped');
+        return
     print len(images)
     fold_2 = dir_2 + folder
-    rm_if_exists(fold_2); 
+    rm_if_exists(fold_2)
     shutil.copytree(_tmp_dir, fold_2)
-    rename_frames(fold_2 + '/'); 
+    rename_frames(fold_2 + '/')
 
 # def copy_and_rename_frames(dir_1, nam = 'renamed'):
 #     # For each subfolder that contains frames (images), copies them in the 'nam' directory
@@ -160,11 +160,11 @@ if __name__ == '__main__':
         print('You should provide the directory of the clips')
         raise Exception()
     elif args < 3:
-        nam = 'renamed'; vid_fold = '1_videos'; 
+        nam = 'renamed'; vid_fold = '1_videos'
     elif args < 4:
-        nam = str(sys.argv[2]); vid_fold = '1_videos'; 
+        nam = str(sys.argv[2]); vid_fold = '1_videos'
     else:
-        nam = str(sys.argv[2]); vid_fold = str(sys.argv[3]); 
+        nam = str(sys.argv[2]); vid_fold = str(sys.argv[3])
     main(str(sys.argv[1]), nam, vid_fold)
 
 
