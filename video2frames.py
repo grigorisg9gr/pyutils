@@ -34,6 +34,7 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
     Accepts a clip file and converts it into individual frames by calling avconv. 
     It might rename the original file if it contains whitespaces (just removes thems).
     """
+    print clip_name
     if clip_name[-3:]!= type_v:
         print('Ignoring file ' + clip_name); return  
     #_name = clip_name; name = _name.replace(' ','')           # replace all empty spaces in the original file
