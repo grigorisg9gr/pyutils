@@ -33,7 +33,7 @@ def store_results(file_path, data):
 
 def main(path, filename='tt.txt', save_res=False, ending='', directory=False):
     """
-    Find the number of files in the path provided. 
+    Find the number of files in the path provided.
     :param path:        The path that we wish to search for files, folders.
     :param filename:    (optional) The filename (with the full path) if we want to compare with previous counting results.
     :param save_res:    (optional) Set to True to save the results in a file (filename variable).

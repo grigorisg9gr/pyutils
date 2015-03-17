@@ -3,7 +3,7 @@
 # available under the terms of the Apache License, Version 2.0
 
 
-type_v = 'mp4'
+type_v = ['mp4', 'mpg', 'avi']
 
 
 # mkdir -p in python from http://stackoverflow.com/a/11860637/1716869
@@ -23,22 +23,22 @@ def mkdir_p(path):
 
 import subprocess
 import shutil
-import re,string
+import re
 def clip_to_frames(clip_name, path_video, path_fr_0):
     """
     Accepts a clip file and converts it into individual frames by calling avconv. 
-    It might rename the original file if it contains whitespaces (just removes thems).
+    It might rename the original file if it contains whitespaces (strips them).
     """
     print clip_name
-    if clip_name[-3:]!= type_v:
+    if clip_name[-3:] not in type_v:
         print('Ignoring file ' + clip_name); return  
     #_name = clip_name; name = _name.replace(' ','')           # replace all empty spaces in the original file
     pattern = re.compile('[^a-zA-Z0-9.]+')
     name = pattern.sub('', clip_name) # strip all white spaces, quatation points, etc.
     shutil.move(path_video + clip_name, path_video + name)
     path_frames = path_fr_0 + name[:-4] + '/'; mkdir_p(path_frames)
-    p = subprocess.check_output(['avconv -i ' +  path_video + name + ' -f image2 ' + 
-                             path_frames + '%06d.png'], shell=True)  
+    p = subprocess.check_output(['avconv -i ' +  path_video + name + ' -f image2 ' +
+                             path_frames + '%06d.png'], shell=True)
 
 
 def main(path_base, video_f='mp4/', frames='frames/'):
@@ -55,7 +55,7 @@ def main(path_base, video_f='mp4/', frames='frames/'):
     try: 
         from joblib import Parallel, delayed
         Parallel(n_jobs=-1, verbose=4)(delayed(clip_to_frames)(clip_name, path_video, path_v_fr) for clip_name in list_clips);
-    except: 
+    except ImportError:
         print('Sequential execution')
         [clip_to_frames(clip_name, path_video, path_v_fr) for clip_name in list_clips] 
 
