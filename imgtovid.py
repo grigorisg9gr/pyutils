@@ -127,9 +127,9 @@ if __name__ == "__main__":
 
             dir/foo/bar/001.jpg  -> output/foo_bar.mp4
 
-	    Should be called like this:
-		python imgtovid.py /dir/my_images -o /dir_output/ 
-	    if the images are in the folder my_images.
+        Should be called like this:
+        python imgtovid.py /dir/my_images -o /dir_output/
+        if the images are in the folder my_images.
 
         Note that this does lead to degenerate cases if you use underscore
         folder names. Currently only supports jpg images but trivial to add

@@ -1,8 +1,3 @@
-# coding: utf-8
-
-# grigoris, 18/12/2014: Convert different clips (videos) to frames. 
-# The function uses the avconv
-#
 #
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
@@ -12,7 +7,7 @@ type_v = 'mp4'
 
 
 # mkdir -p in python from http://stackoverflow.com/a/11860637/1716869
-import os
+import os, sys
 import errno
 
 def mkdir_p(path):
@@ -38,7 +33,8 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
     if clip_name[-3:]!= type_v:
         print('Ignoring file ' + clip_name); return  
     #_name = clip_name; name = _name.replace(' ','')           # replace all empty spaces in the original file
-    pattern = re.compile('[^a-zA-Z0-9.]+'); name = pattern.sub('', clip_name); # strip all white spaces, quatation points, etc. 
+    pattern = re.compile('[^a-zA-Z0-9.]+')
+    name = pattern.sub('', clip_name) # strip all white spaces, quatation points, etc.
     shutil.move(path_video + clip_name, path_video + name)
     path_frames = path_fr_0 + name[:-4] + '/'; mkdir_p(path_frames)
     p = subprocess.check_output(['avconv -i ' +  path_video + name + ' -f image2 ' + 
@@ -47,14 +43,14 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
 
 def main(path_base, video_f='mp4/', frames='frames/'):
     """
-    Calls other functions to perform the task. 
-    ARGS:
-    path_base:        The base directory where both the video files should be and the frames that will be written.
-    video_f:   	      Folder with relative address to the path_base, where the videos are.
-    frames:   	      Folder that will be created and will contain the created frames. 
+    Convert different clips (videos) to frames. This function calls the clip_to frames for each clip it finds.
+    :param path_base:       The base directory where both the video files should be and the frames that will be written.
+    :param video_f:         (optional) Folder with relative address to the path_base, where the videos are.
+    :param frames:          (optional) Folder that will be created and will contain the created frames.
+    :return:
     """
     path_video = path_base + video_f + '/'
-    path_v_fr = path_base + frames + '/'; mkdir_p(path_v_fr);
+    path_v_fr = path_base + frames + '/'; mkdir_p(path_v_fr)
     list_clips = sorted(os.listdir(path_video)); print list_clips
     try: 
         from joblib import Parallel, delayed
@@ -69,7 +65,7 @@ if __name__ == '__main__':
     args = len(sys.argv)
     if args < 4:
         raise Exception('You should provide the base directory, the folder of'
-		'the clips and the folder that you wish the frames to be saved ') 
+                        'the clips and the folder that you wish the frames to be saved ')
     main(str(sys.argv[1]), str(sys.argv[2]), str(sys.argv[3]))
 
 

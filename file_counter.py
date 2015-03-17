@@ -23,13 +23,24 @@ def load_old_results(file_path):
         oldfile.close()
     return olddata
 
+
 def store_results(file_path, data):
     """Pickles results to compare on next run."""
     output = open(file_path, 'wb')
     output.write(data)
     output.close()
 
+
 def main(path, filename='tt.txt', save_res=False, ending='', directory=False):
+    """
+    Find the number of files in the path provided. 
+    :param path:        The path that we wish to search for files, folders.
+    :param filename:    (optional) The filename (with the full path) if we want to compare with previous counting results.
+    :param save_res:    (optional) Set to True to save the results in a file (filename variable).
+    :param ending:      (optional) If a specific type of files should be searched. By default '' (all files and extensions).
+    :param directory:   (optional) Se to True if only the number of sub-directories should be searched.
+    :return:            The number of files found, or -1 if it's not a valid path.
+    """
     olddata = load_old_results(filename)
     files = count_files(path, ending=ending, directory=directory)
     if olddata != {}: # then there is previous data
