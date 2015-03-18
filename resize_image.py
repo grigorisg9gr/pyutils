@@ -39,7 +39,7 @@ def bulkResize(imageFolder, factor=None):
         try:
             from joblib import Parallel, delayed
             Parallel(n_jobs=-1, verbose=4)(delayed(resize)(path, fileName, factor, imgExts, w, h) for fileName in files)
-        except:
+        except ImportError:
             print('Sequential execution')
             for fileName in files:
                 resize(path, fileName, factor, imgExts, w, h)

@@ -11,6 +11,9 @@ class TestImgtovid(unittest.TestCase):
     """
     Tests for checking the basic elementary functions of the imgtovid.py
     call like this:
+    a) from terminal:
+    python test_pyutils.py
+    b) from python shell:
     import unittest, sys; sys.path.append('path');
     from  test_pyutils import TestImgtovid
     suite = unittest.TestLoader().loadTestsFromTestCase(TestImgtovid); unittest.TextTestRunner(verbosity=2).run(suite)
@@ -65,3 +68,28 @@ class TestImgtovid(unittest.TestCase):
         self.assertEqual(args1[1], 4)                      # check the leading zeros, based on fnames above
 
 
+    def test_count_files_no_path(self):
+        """
+        Confirm that when count_files (in file_counter.py) is called:
+         a) in a non-existent path, it returns negative number of files,
+         b) in the current dir, it returns at least two files.
+        """
+        from file_counter import count_files
+        import os
+        path_in = self.rand_str
+        if os.path.isdir(path_in): # if by chance it is a path, continue
+            print('Well, %s is a path in this pc.' % path_in)
+            return
+        ret = count_files(path_in)
+        self.assertTrue(ret <= 0)
+
+        ret = count_files('.')
+        self.assertTrue(ret >= 2)
+
+
+
+if __name__ == '__main__':
+    import unittest
+    from test_pyutils import TestImgtovid
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestImgtovid)
+    unittest.TextTestRunner(verbosity=2).run(suite)
