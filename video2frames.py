@@ -1,29 +1,15 @@
-#
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-
-type_v = ['mp4', 'mpg', 'avi']
-
-
-# mkdir -p in python from http://stackoverflow.com/a/11860637/1716869
-import os, sys
-import errno
-
-def mkdir_p(path):
-    """ 'mkdir -p' in Python """
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
+import sys
+import os
+from path_related_functions import mkdir_p
 import subprocess
 import shutil
 import re
+
+type_v = ['mp4', 'mpg', 'avi']
+
 def clip_to_frames(clip_name, path_video, path_fr_0):
     """
     Accepts a clip file and converts it into individual frames by calling avconv. 
@@ -31,14 +17,13 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
     """
     print clip_name
     if clip_name[-3:] not in type_v:
-        print('Ignoring file ' + clip_name); return  
-    #_name = clip_name; name = _name.replace(' ','')           # replace all empty spaces in the original file
+        print('Ignoring file ' + clip_name); return
     pattern = re.compile('[^a-zA-Z0-9.]+')
-    name = pattern.sub('', clip_name) # strip all white spaces, quatation points, etc.
+    name = pattern.sub('', clip_name)  # strip all white spaces, quatation points, etc.
     shutil.move(path_video + clip_name, path_video + name)
-    path_frames = path_fr_0 + name[:-4] + '/'; mkdir_p(path_frames)
-    p = subprocess.check_output(['avconv -i ' +  path_video + name + ' -f image2 ' +
-                             path_frames + '%06d.png'], shell=True)
+    path_frames = mkdir_p(path_fr_0 + name[:-4] + '/')
+    p = subprocess.check_output(['avconv -i ' + path_video + name + ' -f image2 ' +
+                                 path_frames + '%06d.png'], shell=True)
 
 
 def main(path_base, video_f='mp4/', frames='frames/'):
@@ -50,7 +35,7 @@ def main(path_base, video_f='mp4/', frames='frames/'):
     :return:
     """
     path_video = path_base + video_f + '/'
-    path_v_fr = path_base + frames + '/'; mkdir_p(path_v_fr)
+    path_v_fr = mkdir_p(path_base + frames + '/')
     list_clips = sorted(os.listdir(path_video)); print list_clips
     try: 
         from joblib import Parallel, delayed

@@ -1,32 +1,12 @@
-#
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-# mkdir -p in python from http://stackoverflow.com/a/11860637/1716869
-import os, shutil
-import errno
-
-def mkdir_p(path):
-    """ 'mkdir -p' in Python """
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-            
-
-def rm_if_exists(path):
-    try: 
-        shutil.rmtree(path)
-    except OSError: 
-        pass
-
+from path_related_functions import (mkdir_p, rm_if_exists)
 
 # temporarily suppress output from videos # http://thesmithfam.org/blog/2012/10/25/temporarily-suppress-console-output-in-python/
 from contextlib import contextmanager
 import sys, os
+import shutil
 
 @contextmanager
 def suppress_stdout():
@@ -55,8 +35,8 @@ def clip_frames_to_videos(path_of_clips, vid_fold='1_videos', nam='renamed', sup
         return
     list_clips_0 = sorted(os.listdir(path_of_clips))
     list_clips = [x for x in list_clips_0 if x not in [nam, vid_fold]]
-    path_of_clips_new = path_of_clips + nam + '/'; mkdir_p(path_of_clips_new)
-    path_videos = path_of_clips_new + vid_fold + '/';  mkdir_p(path_videos)
+    path_of_clips_new = mkdir_p(path_of_clips + nam + '/')
+    path_videos = mkdir_p(path_of_clips_new + vid_fold + '/')
     try:									# try to do the call the imgtovid for every clip in parallel
         from joblib import Parallel, delayed
         Parallel(n_jobs=-1, verbose=4)(delayed(process_clip)(clip, path_of_clips, path_videos, nam, suppress_print) 
