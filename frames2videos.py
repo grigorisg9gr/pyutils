@@ -1,7 +1,7 @@
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-from path_related_functions import (mkdir_p, rm_if_exists, is_path)
+from path_related_functions import (mkdir_p, rm_if_exists, is_path, rename_files)
 
 # temporarily suppress output from videos # http://thesmithfam.org/blog/2012/10/25/temporarily-suppress-console-output-in-python/
 from contextlib import contextmanager
@@ -59,19 +59,19 @@ def process_clip(clip, path_of_clips, path_videos, nam='renamed', suppress_print
         call_imgtovid(path_clip, path_videos)
 
 
-def rename_frames(d):
-    """
-    Accepts a path and rewrites all the frames with sequential order that is required by imgtovid.
-    :param d:               Path of frames
-    :return:
-    """
-    list_d = sorted(os.listdir(d))
-    image_type = imgtovid.find_image_type(d, list_d[0])           # will raise an error if it's not an image
-    ext = '.' + image_type
-    padd = '%.' + str(len(os.path.splitext(list_d[0])[0])) + 'd'  # checks the format and writes with the same padding
-    for i, fr in enumerate(list_d):
-        # n = os.path.splitext(fr)[0]
-        os.rename(d + fr, d + padd % i + ext)
+# def rename_frames(d):
+#     """
+#     Accepts a path and rewrites all the frames with sequential order that is required by imgtovid.
+#     :param d:               Path of frames
+#     :return:
+#     """
+#     list_d = sorted(os.listdir(d))
+#     image_type = imgtovid.find_image_type(d, list_d[0])           # will raise an error if it's not an image
+#     ext = '.' + image_type
+#     padd = '%.' + str(len(os.path.splitext(list_d[0])[0])) + 'd'  # checks the format and writes with the same padding
+#     for i, fr in enumerate(list_d):
+#         # n = os.path.splitext(fr)[0]
+#         os.rename(d + fr, d + padd % i + ext)
 
 import glob 
 import warnings
@@ -93,7 +93,9 @@ def copy_folder_and_rename_frames(folder, dir_1, dir_2, min_images=2):
     fold_2 = dir_2 + folder
     rm_if_exists(fold_2)
     shutil.copytree(_tmp_dir, fold_2)
-    rename_frames(fold_2 + '/')
+    # rename_frames(fold_2 + '/')
+    list_d = sorted(os.listdir(fold_2 + '/'))
+    rename_files(fold_2 + '/', imgtovid.find_image_type(fold_2 + '/', list_d[0]))
 
         
 def move_to_orig_folder(dir_1, vid_fold, nam):
