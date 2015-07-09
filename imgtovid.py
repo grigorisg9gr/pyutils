@@ -101,7 +101,7 @@ def search_for_images(output_dir, dirname, fnames):
                          output_dir=output_dir, image_type=image_type)
         else:
             print('Did not find the expected arithmetic sequence of images. '
-			    'Potentially missing some images from the sequence')
+                  'Potentially missing some images from the sequence.')
 
 
 def imgtovid(input_dir, output_dir=None):

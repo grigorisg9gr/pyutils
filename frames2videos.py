@@ -1,12 +1,15 @@
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-from path_related_functions import (mkdir_p, rm_if_exists, is_path, rename_files)
+from path_related_functions import (is_path, rename_files)
+import glob
+import warnings
+import sys
+import os
+import imgtovid
 
-# temporarily suppress output from videos # http://thesmithfam.org/blog/2012/10/25/temporarily-suppress-console-output-in-python/
+# temporarily suppress output: http://thesmithfam.org/blog/2012/10/25/temporarily-suppress-console-output-in-python/
 from contextlib import contextmanager
-import sys, os
-import shutil
 
 @contextmanager
 def suppress_stdout():
@@ -19,39 +22,31 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 
-import imgtovid
-
 def call_imgtovid(path_clip, path_videos):
-# Calls the imgtovid function to convert one clip's frames to video
+    # Calls the imgtovid function to convert one clip's frames to video
     try:
         imgtovid.imgtovid(path_clip, path_videos)
     except IOError:
         print('Ignoring exception in ' + path_clip)
 
 
-def clip_frames_to_videos(path_of_clips, vid_fold='1_videos', nam='renamed', suppress_print=True):
-    if not is_path(path_of_clips):
-        return
-    list_clips_0 = sorted(os.listdir(path_of_clips))
-    list_clips = [x for x in list_clips_0 if x not in [nam, vid_fold]]
-    path_of_clips_new = mkdir_p(path_of_clips + nam + '/')
-    path_videos = mkdir_p(path_of_clips_new + vid_fold + '/')
-    try:									# try to do the call the imgtovid for every clip in parallel
-        from joblib import Parallel, delayed
-        Parallel(n_jobs=-1, verbose=4)(delayed(process_clip)(clip, path_of_clips, path_videos, nam, suppress_print) 
-                                       for clip in list_clips if not(clip == vid_fold))
-    except ImportError:
-        print('Sequential execution')
-        for clip in list_clips:
-            if clip == vid_fold:
-                continue
-            process_clip(clip, path_of_clips, path_videos, nam, suppress_print)
-
-
-def process_clip(clip, path_of_clips, path_videos, nam='renamed', suppress_print=True):
+def process_clip(clip, path_of_clips, path_videos, suppress_print=True, min_images=2):
     print('Preparing video for %s clip' % clip)
-    copy_folder_and_rename_frames(clip, path_of_clips, path_of_clips + nam + '/')
-    path_clip = path_of_clips + nam + '/' + clip
+    # check_and_rename_frames(clip, path_of_clips)
+    path_clip = path_of_clips + clip
+    if not is_path(path_clip):
+        return
+    files = sorted(os.listdir(path_clip))
+    if len(files) == 0:
+        warnings.warn('There are no files in the %s/ dir\n' % path_clip)
+        return
+    image_type = imgtovid.find_image_type(path_clip + '/', files[0])
+    images = glob.glob(path_clip + '/*.' + image_type)
+    if len(images) < min_images:
+        print('The folder %s/ has too few files(' % path_clip + str(len(images)) + '), skipped')
+        return
+    print len(images)
+    rename_files(path_clip, image_type)
     if suppress_print:
         with suppress_stdout():
             call_imgtovid(path_clip, path_videos)
@@ -59,68 +54,32 @@ def process_clip(clip, path_of_clips, path_videos, nam='renamed', suppress_print
         call_imgtovid(path_clip, path_videos)
 
 
-# def rename_frames(d):
-#     """
-#     Accepts a path and rewrites all the frames with sequential order that is required by imgtovid.
-#     :param d:               Path of frames
-#     :return:
-#     """
-#     list_d = sorted(os.listdir(d))
-#     image_type = imgtovid.find_image_type(d, list_d[0])           # will raise an error if it's not an image
-#     ext = '.' + image_type
-#     padd = '%.' + str(len(os.path.splitext(list_d[0])[0])) + 'd'  # checks the format and writes with the same padding
-#     for i, fr in enumerate(list_d):
-#         # n = os.path.splitext(fr)[0]
-#         os.rename(d + fr, d + padd % i + ext)
-
-import glob 
-import warnings
-def copy_folder_and_rename_frames(folder, dir_1, dir_2, min_images=2):
-    _tmp_dir = dir_1 + folder
-    if not(os.path.isdir(_tmp_dir)):
-        warnings.warn('The path %s/ is empty\n' % _tmp_dir)
-        return
-    files = sorted(os.listdir(_tmp_dir))
-    if len(files) == 0:
-        warnings.warn('There are no files in the %s/ dir\n' % _tmp_dir)
-        return
-    image_type = imgtovid.find_image_type(_tmp_dir, files[0])
-    images = glob.glob(_tmp_dir + '/*.' + image_type)
-    if len(images) < min_images:
-        print('The folder %s/ has too few files(' % _tmp_dir + str(len(images)) + '), skipped')
-        return
-    print len(images)
-    fold_2 = dir_2 + folder
-    rm_if_exists(fold_2)
-    shutil.copytree(_tmp_dir, fold_2)
-    # rename_frames(fold_2 + '/')
-    list_d = sorted(os.listdir(fold_2 + '/'))
-    rename_files(fold_2 + '/', imgtovid.find_image_type(fold_2 + '/', list_d[0]))
-
-        
-def move_to_orig_folder(dir_1, vid_fold, nam):
-    rm_if_exists(dir_1 + vid_fold + '/')
-    shutil.move(dir_1 + nam + '/' + vid_fold + '/', dir_1)
-    rm_if_exists(dir_1 + nam + '/')
-
-
-def main(clip_parent_path, nam='renamed', vid_fold='1_videos', suppress_print=True):
+def main(clip_parent_path, vid_fold='1_videos', suppress_print=True):
     """
-    Convert a sequence of frames to videos. Calls the imgtovid.py to perform the conversion to video.
-    It ensures that the frames are (re-)named in a sequential manner. To do that: a) it copies all the
-    frames in a new temporary folder, it renames them and then it call the imgtovid.py in that folder.
-    Finally, it copies the new videos to the original folder.
-    Assumption: In the original folder, the first object (in alphabetical order) should be an image.
+    Convert all frames in the respective sub-folders into videos.
+    For each sub-folder:
+        a) it renames the frames into sequential order inplace.
+        b) it calls imgtovid.py.
 
-    :param clip_parent_path: The folder with the subfolders. Each subfolder should contains frames of a clip.
-    :param nam:             (optional) The new temp folder for writing the frames sequentially. Will be deleted in the end.
-    :param vid_fold:        (optional) The final folder, where all the videos will be.
+    ASSUMPTION: In the original folder, the first object (in alphabetical order) should be an image.
+    :param clip_parent_path: The folder with the sub-folders. Each sub-folder should contains frames of a clip.
+    :param vid_fold:        (optional) The final folder, where all the videos will be saved.
     :param suppress_print:  (optional) Suppress the output to the terminal from imgtovid.
     :return:
     """
-
-    clip_frames_to_videos(clip_parent_path, vid_fold=vid_fold, nam=nam, suppress_print=suppress_print)
-    move_to_orig_folder(clip_parent_path, vid_fold, nam)
+    if not is_path(clip_parent_path):
+        return
+    list_clips_0 = sorted(os.listdir(clip_parent_path))
+    list_clips = [x for x in list_clips_0 if x not in [vid_fold]]
+    p_vid = clip_parent_path + vid_fold + '/'
+    try:									# try to call the imgtovid for every clip in parallel
+        from joblib import Parallel, delayed
+        Parallel(n_jobs=-1, verbose=4)(delayed(process_clip)(clip, clip_parent_path, p_vid, suppress_print)
+                                       for clip in list_clips if not(clip == vid_fold))
+    except ImportError:
+        print('Joblib library probably does not exist, proceeding with sequential execution.')
+        t = [process_clip(clip, clip_parent_path, p_vid, suppress_print)
+             for clip in list_clips if not(clip == vid_fold)]
 
 
 # call from terminal with full argument list:
@@ -130,15 +89,12 @@ if __name__ == '__main__':
         print('You should provide the directory of the clips')
         raise Exception()
     elif args < 3:
-        nam1 = 'renamed'
         vid_fold1 = '1_videos'
     elif args < 4:
-        nam1 = str(sys.argv[2])
         vid_fold1 = '1_videos'
     else:
-        nam1 = str(sys.argv[2])
         vid_fold1 = str(sys.argv[3])
-    main(str(sys.argv[1]), nam1, vid_fold1)
+    main(str(sys.argv[1]), vid_fold1)
 
 
 
