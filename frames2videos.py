@@ -1,7 +1,7 @@
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-from path_related_functions import (mkdir_p, rm_if_exists)
+from path_related_functions import (mkdir_p, rm_if_exists, is_path)
 
 # temporarily suppress output from videos # http://thesmithfam.org/blog/2012/10/25/temporarily-suppress-console-output-in-python/
 from contextlib import contextmanager
@@ -30,8 +30,7 @@ def call_imgtovid(path_clip, path_videos):
 
 
 def clip_frames_to_videos(path_of_clips, vid_fold='1_videos', nam='renamed', suppress_print=True):
-    if not(os.path.isdir(path_of_clips)): 
-        print('Wrong original path provided, seems non-existent')
+    if not is_path(path_of_clips):
         return
     list_clips_0 = sorted(os.listdir(path_of_clips))
     list_clips = [x for x in list_clips_0 if x not in [nam, vid_fold]]
@@ -71,8 +70,8 @@ def rename_frames(d):
     ext = '.' + image_type
     padd = '%.' + str(len(os.path.splitext(list_d[0])[0])) + 'd'  # checks the format and writes with the same padding
     for i, fr in enumerate(list_d):
-        n = os.path.splitext(fr)[0]
-        os.rename(d + fr, d + padd %i + ext)                    
+        # n = os.path.splitext(fr)[0]
+        os.rename(d + fr, d + padd % i + ext)
 
 import glob 
 import warnings
@@ -103,23 +102,23 @@ def move_to_orig_folder(dir_1, vid_fold, nam):
     rm_if_exists(dir_1 + nam + '/')
 
 
-def main(dir_1, nam='renamed', vid_fold='1_videos', suppress_print=True):
+def main(clip_parent_path, nam='renamed', vid_fold='1_videos', suppress_print=True):
     """
     Convert a sequence of frames to videos. Calls the imgtovid.py to perform the conversion to video.
     It ensures that the frames are (re-)named in a sequential manner. To do that: a) it copies all the
     frames in a new temporary folder, it renames them and then it call the imgtovid.py in that folder.
-    Finally, it copies to the original folder the new videos.
+    Finally, it copies the new videos to the original folder.
     Assumption: In the original folder, the first object (in alphabetical order) should be an image.
 
-    :param dir_1:           The folder with the subfolders. Each subfolder should contains frames of a clip.
+    :param clip_parent_path: The folder with the subfolders. Each subfolder should contains frames of a clip.
     :param nam:             (optional) The new temp folder for writing the frames sequentially. Will be deleted in the end.
     :param vid_fold:        (optional) The final folder, where all the videos will be.
     :param suppress_print:  (optional) Suppress the output to the terminal from imgtovid.
     :return:
     """
 
-    clip_frames_to_videos(dir_1, vid_fold=vid_fold, nam=nam, suppress_print=suppress_print)
-    move_to_orig_folder(dir_1, vid_fold, nam)
+    clip_frames_to_videos(clip_parent_path, vid_fold=vid_fold, nam=nam, suppress_print=suppress_print)
+    move_to_orig_folder(clip_parent_path, vid_fold, nam)
 
 
 # call from terminal with full argument list:
