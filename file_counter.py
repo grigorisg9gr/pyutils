@@ -11,7 +11,7 @@ def count_files(path='.', ending='', directory=False):
         p = subprocess.check_output(['find ' + path + ' -name "*' + ending + '" -print | wc -l'], shell=True)
     else:
         p = subprocess.check_output(['find ' + path + ' -type d -name "*' + ending + '" -print | wc -l'], shell=True)
-    return p[:-1] # ignore the \n in the end
+    return int(p[:-1])  # ignore the \n in the end
 
 
 def load_old_results(file_path):
