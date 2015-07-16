@@ -72,9 +72,6 @@ class Testpyutils(unittest.TestCase):
     def setUp(self):
         self.rand_str = random_string_gen()
         self.files_path = os.path.dirname(os.path.realpath(__file__)) + '/'  # dir of the pyutils files
-        self.test_mkdir_passed = False
-        self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
-                           '00004.txt', '00002.pt', '00004.pt']
 
     def test_count_files_no_path(self):
         """
@@ -96,6 +93,25 @@ class Testpyutils(unittest.TestCase):
             return
         ret = count_files(path_in)
         self.assertTrue(ret <= 0)
+
+
+class Test_path_related_functions(unittest.TestCase):
+    def setUp(self):
+        self.rand_str = random_string_gen()
+        self.files_path = os.path.dirname(os.path.realpath(__file__)) + '/'  # dir of the pyutils files
+        self.test_mkdir_passed = False
+        self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
+                           '00004.txt', '00002.pt', '00004.pt']
+
+    def test_is_path(self):
+        from path_related_functions import is_path
+        self.assertEqual(os.path.isdir(self.files_path), is_path(self.files_path))
+        self.assertEqual(os.path.isdir('/tmp/'), is_path('/tmp/'))
+        p1 = self.files_path + self.rand_str + '/files/'
+        if not os.path.isdir(p1):
+            # http://www.lengrand.fr/2011/12/pythonunittest-assertraises-raises-error/
+            self.assertRaises(RuntimeError, lambda: is_path(p1, stop_execution=True))
+
 
     def test_mkdir(self):
         """
@@ -156,6 +172,15 @@ class Testpyutils(unittest.TestCase):
         self.assertEqual(res_bef2, res2_2)  # .txt2 should be untouched (check different extension).
         self.assertTrue(os.path.exists(p1 + '000000009.txt'))  # file is actually renamed (plus new extension added).
 
+        # rename nr. 3
+        pt_bef = sorted(glob.glob(p1 + '*.pt'))
+        rename_files(p1, '.pt', pad_digits=5, starting_elem=8)
+        pt_aft = sorted(glob.glob(p1 + '*.pt'))
+        self.assertEqual(len(pt_bef), len(pt_aft))  # number of files should be the same.
+        self.assertTrue(pt_bef[0] not in pt_aft)  # files should be renamed.
+        pt_final = pt_aft[0][pt_aft[0].rfind('/')+1:]
+        self.assertEqual(int(pt_final[:pt_final.rfind('.')]), 8)  # first element should be [0*]8.pt.
+
         # remove the temp path and files
         shutil.rmtree(self.files_path + self.rand_str)
 
@@ -194,9 +219,12 @@ class Testpyutils(unittest.TestCase):
 
 if __name__ == '__main__':
     import unittest
-    from test_pyutils import (TestImgtovid, Testpyutils)
+    from test_pyutils import (TestImgtovid, Testpyutils, Test_path_related_functions)
     suite1 = unittest.TestLoader().loadTestsFromTestCase(TestImgtovid)
     unittest.TextTestRunner(verbosity=2).run(suite1)
 
     suite2 = unittest.TestLoader().loadTestsFromTestCase(Testpyutils)
     unittest.TextTestRunner(verbosity=2).run(suite2)
+
+    suite3 = unittest.TestLoader().loadTestsFromTestCase(Test_path_related_functions)
+    unittest.TextTestRunner(verbosity=2).run(suite3)

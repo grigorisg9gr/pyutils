@@ -28,18 +28,26 @@ def rm_if_exists(path):
         pass
 
 
-def is_path(path, msg='Not valid path (%s)'):
+def is_path(path, msg=None, stop_execution=False):
     """
     Checks if a path exists.
-    If it does, it returns True, otherwise it prints a message (msg) and returns False
+    :param path:            Path to be checked.
+    :param msg:             (optional) Message that will be printed in case it does not exist.
+    :param stop_execution:  (optional) Boolean to declare if we want to stop execution if
+    the path does not exist. If True, then a RuntimeError will be raised, the function will return False.
+    :return:                Boolean value. True if the path exists, False otherwise.
     """
     if not(os.path.isdir(path)):
-        print(msg % path)
+        if msg is None:
+            msg = 'Not valid path ({})'.format(path)
+        if stop_execution:
+            raise RuntimeError(msg)
+        print(msg)
         return False
     return True
 
 
-def rename_files(file_path, ext, initial_suffix='', new_suffix='', pad_digits=6):
+def rename_files(file_path, ext, initial_suffix='', new_suffix='', pad_digits=6, starting_elem=0):
     """
     Serialises and renames files following an alphabetical ordering.
     It does this only for the files that match the pattern provided (initial_suffix + ext).
@@ -49,16 +57,21 @@ def rename_files(file_path, ext, initial_suffix='', new_suffix='', pad_digits=6)
     :param initial_suffix:  (optional) Initial suffix of files before extension.
     :param new_suffix:      (optional) New suffix to the renamed files.
     :param pad_digits:      (optional) Number of digits for padding the new filenames.
+    :param starting_elem:    (optional) First element name, by default zero_based.
+    Should be int, smaller than 10.
     :return:
     """
     if not is_path(file_path):
         return -1
+    if starting_elem < 0:
+        print('Cannot start from negative numbering, converting to positive.')
+        starting_elem = -starting_elem
     file_path += '/'
     ext = '.' + ext if ext[0] != '.' else ext
     padding = '%.' + str(int(pad_digits)) + 'd'
     list2rename = sorted(glob.glob(file_path + '*' + initial_suffix + ext))
     for cnt, elem_p in enumerate(list2rename):
-        os.rename(elem_p, file_path + padding % cnt + new_suffix + ext)
+        os.rename(elem_p, file_path + padding % (cnt + starting_elem) + new_suffix + ext)
     return 1
 
 
