@@ -65,7 +65,7 @@ extensions = {'png', 'jpg', 'gif', 'jpeg'}
 from os.path import splitext
 def find_image_type(dirname, fname):
     try:
-        image_type = splitext(fname)[-1][1:] # Assumption that the first element is an image.
+        image_type = splitext(fname)[-1][1:]  # Assumption that the first element is an image.
     except IOError:
         print('Probably the first element in the folder is not an image, which is required')
         raise
@@ -76,7 +76,7 @@ def find_image_type(dirname, fname):
         try:
             type1 = imghdr.what(dirname + '/' + fname)
         except IOError:
-            raise IOError('The file %s does not exist.\n' % (dirname + '/' + fname))
+            raise IOError('The file {} does not exist.'.format(dirname + '/' + fname))
         if type1 in extensions:
             return type1
         else:

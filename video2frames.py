@@ -3,12 +3,12 @@
 
 import sys
 import os
-from path_related_functions import mkdir_p
+from path_related_functions import mkdir_p, sep
 import subprocess
 import shutil
 import re
 
-type_v = ['mp4', 'mpg', 'avi']
+type_v = ['mp4', 'mpg', 'avi', 'ogg']
 
 def clip_to_frames(clip_name, path_video, path_fr_0):
     """
@@ -17,11 +17,12 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
     """
     print clip_name
     if clip_name[-3:] not in type_v:
-        print('Ignoring file ' + clip_name); return
+        print('Ignoring file {}.'.format(clip_name))
+        return
     pattern = re.compile('[^a-zA-Z0-9.]+')
     name = pattern.sub('', clip_name)  # strip all white spaces, quatation points, etc.
     shutil.move(path_video + clip_name, path_video + name)
-    path_frames = mkdir_p(path_fr_0 + name[:-4] + '/')
+    path_frames = mkdir_p(path_fr_0 + name[:-4] + sep)
     p = subprocess.check_output(['avconv -i ' + path_video + name + ' -f image2 ' +
                                  path_frames + '%06d.png'], shell=True)
 
@@ -34,9 +35,9 @@ def main(path_base, video_f='mp4/', frames='frames/'):
     :param frames:          (optional) Folder that will be created and will contain the created frames.
     :return:
     """
-    path_video = path_base + video_f + '/'
-    path_v_fr = mkdir_p(path_base + frames + '/')
-    list_clips = sorted(os.listdir(path_video)); print list_clips
+    path_video = path_base + video_f + sep
+    path_v_fr = mkdir_p(path_base + frames + sep)
+    list_clips = sorted(os.listdir(path_video))
     try: 
         from joblib import Parallel, delayed
         Parallel(n_jobs=-1, verbose=4)(delayed(clip_to_frames)(clip_name, path_video, path_v_fr) for clip_name in list_clips);

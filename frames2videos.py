@@ -1,7 +1,7 @@
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-from path_related_functions import (is_path, rename_files)
+from path_related_functions import (is_path, rename_files, sep)
 import glob
 import warnings
 import sys
@@ -13,7 +13,7 @@ from contextlib import contextmanager
 
 @contextmanager
 def suppress_stdout():
-    with open(os.devnull, "w") as devnull:
+    with open(os.devnull, 'w') as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
         try:  
@@ -27,23 +27,23 @@ def call_imgtovid(path_clip, path_videos):
     try:
         imgtovid.imgtovid(path_clip, path_videos)
     except IOError:
-        print('Ignoring exception in ' + path_clip)
+        print('Ignoring exception in {}.'.format(path_clip))
 
 
 def process_clip(clip, path_of_clips, path_videos, suppress_print=True, min_images=2):
-    print('Preparing video for %s clip' % clip)
+    print('Preparing video for {} clip.'.format(clip))
     # check_and_rename_frames(clip, path_of_clips)
     path_clip = path_of_clips + clip
     if not is_path(path_clip):
         return
     files = sorted(os.listdir(path_clip))
     if len(files) == 0:
-        warnings.warn('There are no files in the %s/ dir\n' % path_clip)
+        warnings.warn('There are no files in the {} dir.\n'.format(path_clip))
         return
-    image_type = imgtovid.find_image_type(path_clip + '/', files[0])
-    images = glob.glob(path_clip + '/*.' + image_type)
+    image_type = imgtovid.find_image_type(path_clip + sep, files[0])
+    images = glob.glob(path_clip + sep + '*.' + image_type)
     if len(images) < min_images:
-        print('The folder %s/ has too few files(' % path_clip + str(len(images)) + '), skipped')
+        print('The folder {} has too few files({}), skipped.'.format(path_clip, str(len(images))))
         return
     print len(images)
     rename_files(path_clip, image_type)
@@ -71,7 +71,7 @@ def main(clip_parent_path, vid_fold='1_videos', suppress_print=True):
         return
     list_clips_0 = sorted(os.listdir(clip_parent_path))
     list_clips = [x for x in list_clips_0 if x not in [vid_fold]]
-    p_vid = clip_parent_path + vid_fold + '/'
+    p_vid = clip_parent_path + vid_fold + sep
     try:									# try to call the imgtovid for every clip in parallel
         from joblib import Parallel, delayed
         Parallel(n_jobs=-1, verbose=4)(delayed(process_clip)(clip, clip_parent_path, p_vid, suppress_print)
