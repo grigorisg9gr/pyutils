@@ -104,3 +104,34 @@ def change_suffix(file_path, ext, initial_suffix='', new_suffix=''):
         till_pos = -end_p if elem_n.rfind('_') < 0 else elem_n.rfind('_')
         os.rename(elem_p, file_path + elem_n[:till_pos] + new_suffix + ext)
     return 1
+
+
+def remove_empty_paths(path, removeRoot=False, verbose=True):
+    """
+    Removes empty folders recursively.
+    It searches for empty sub-folders, deletes them and then searches the initial path.
+    :param path:         Initial path to remove empty (sub-)folders.
+    :param removeRoot:  (optional) Boolean, if True, removes the initial path if empty.
+    :param verbose:     (optional) Boolean, if True, prints info during execution.
+    :return:
+    """
+    # code similar to: http://www.jacobtomlinson.co.uk/2014/02/16/python-script-recursively-remove-empty-folders-directories/
+    if not os.path.isdir(path):
+        if verbose:
+            print('The path {} does not exist.'.format(path))
+        return
+
+    # recursively check for empty sub-folders and delete them if they are empty.
+    file_list = os.listdir(path)
+    if len(file_list):
+        for f in file_list:
+            new_path = os.path.join(path, f)
+            if os.path.isdir(new_path):
+                remove_empty_paths(new_path, removeRoot=True)
+
+    # if the (initial) folder is empty, delete it.
+    file_list = os.listdir(path)
+    if len(file_list) == 0 and removeRoot:
+        if verbose:
+            print('Removing the empty path: {}.'.format(path))
+        os.rmdir(path)

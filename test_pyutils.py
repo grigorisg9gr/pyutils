@@ -1,5 +1,10 @@
 import unittest
 import os
+import sys
+import glob
+import shutil
+sep = os.path.sep
+
 
 def random_string_gen(range1=12):
     import string
@@ -103,6 +108,19 @@ class Test_path_related_functions(unittest.TestCase):
         self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
                            '00004.txt', '00002.pt', '00004.pt']
 
+    def _aux_requiring_mkdir(self):
+        from auxiliary import whosparent
+        from path_related_functions import mkdir_p
+        if not self.test_mkdir_passed:
+            self.test_mkdir()
+        p0 = self.files_path + self.rand_str + sep
+        p1 = p0 + 'files' + sep + 'temp' + sep
+        if os.path.isdir(p1):
+            print('Test of {} is postponed, since the random path exists.'.format(whosparent()))
+            return '', ''
+        p1 = mkdir_p(p1)
+        return p1, p0
+
     def test_is_path(self):
         from path_related_functions import is_path
         self.assertEqual(os.path.isdir(self.files_path), is_path(self.files_path))
@@ -111,7 +129,6 @@ class Test_path_related_functions(unittest.TestCase):
         if not os.path.isdir(p1):
             # http://www.lengrand.fr/2011/12/pythonunittest-assertraises-raises-error/
             self.assertRaises(RuntimeError, lambda: is_path(p1, stop_execution=True))
-
 
     def test_mkdir(self):
         """
@@ -132,15 +149,10 @@ class Test_path_related_functions(unittest.TestCase):
             print('Test of test_mkdir is postponed, since the random path exists.')
 
     def test_rename_files(self):
-        from path_related_functions import (rename_files, mkdir_p)
-        import glob, shutil
-        if not self.test_mkdir_passed:
-            self.test_mkdir()
-        p1 = self.files_path + self.rand_str + '/files/'
-        if os.path.isdir(p1):
-            print('Test of test_rename_files is postponed, since the random path exists.')
+        from path_related_functions import rename_files
+        p1, _ = self._aux_requiring_mkdir()
+        if not p1:
             return
-        p1 = mkdir_p(p1)
         for file1 in self.list_files:
             open(p1 + file1, 'a').close()  # http://stackoverflow.com/a/12654798/1716869
         res_bef2 = glob.glob(p1 + '*.txt2')
@@ -186,15 +198,10 @@ class Test_path_related_functions(unittest.TestCase):
 
     def test_change_suffix(self):
         # test similar to the test_rename_files(self).
-        from path_related_functions import (change_suffix, mkdir_p)
-        import glob, shutil
-        if not self.test_mkdir_passed:
-            self.test_mkdir()
-        p1 = self.files_path + self.rand_str + '/files/'
-        if os.path.isdir(p1):
-            print('Test of test_rename_files is postponed, since the random path exists.')
+        from path_related_functions import change_suffix
+        p1, _ = self._aux_requiring_mkdir()
+        if not p1:     # Skip test if path is not returned.
             return
-        p1 = mkdir_p(p1)
         for file1 in self.list_files:
             open(p1 + file1, 'a').close()  # http://stackoverflow.com/a/12654798/1716869
         res_bef2 = glob.glob(p1 + '*.txt2')
@@ -215,6 +222,48 @@ class Test_path_related_functions(unittest.TestCase):
 
         # remove the temp path and files
         shutil.rmtree(self.files_path + self.rand_str)
+
+    def test_remove_empty_paths(self):
+        # test similar to the test_rename_files(self).
+        from path_related_functions import (mkdir_p, remove_empty_paths)
+        if not self.test_mkdir_passed:
+            self.test_mkdir()
+        p0 = self.files_path + self.rand_str + sep
+        p1 = p0 + 'files' + sep + 'temp' + sep
+        if os.path.isdir(p1):
+            print('Test of test_rename_files is postponed, since the random path exists.')
+            return
+        p1 = mkdir_p(p1)
+
+        # test that for non existent paths, it prints 'error' message.
+        from StringIO import StringIO
+        p2 = p1 + 'temp_ia' + sep  # non-existent path
+        saved_stdout = sys.stdout
+        out = StringIO()
+        sys.stdout = out
+        remove_empty_paths(p2, verbose=True)
+        output = out.getvalue().strip()
+        print output
+        assert('not exist' in output)
+        sys.stdout = saved_stdout
+
+        # test that it actually removes the sub-folders but not the root.
+        remove_empty_paths(p0, removeRoot=False, verbose=False)
+        assert(not os.path.isdir(p1))
+        assert(os.path.isdir(p0))
+
+        # test that it removes the path including the root.
+        p1 = mkdir_p(p1)
+        remove_empty_paths(p0, removeRoot=True, verbose=False)
+        assert(not os.path.isdir(p0))
+
+        # test that it does not remove in case of non-empty folder.
+        p1 = mkdir_p(p1)
+        open(p1 + 'temp_files.txt', 'a').close()
+        remove_empty_paths(p0, removeRoot=True, verbose=False)
+        assert(os.path.isdir(p1))
+        # remove the temp path and files
+        shutil.rmtree(p0)
 
 
 if __name__ == '__main__':
