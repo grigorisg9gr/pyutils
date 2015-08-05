@@ -45,7 +45,6 @@ def process_clip(clip, path_of_clips, path_videos, suppress_print=True, min_imag
     if len(images) < min_images:
         print('The folder {} has too few files({}), skipped.'.format(path_clip, str(len(images))))
         return
-    print len(images)
     rename_files(path_clip, image_type)
     if suppress_print:
         with suppress_stdout():

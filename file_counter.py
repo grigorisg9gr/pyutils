@@ -45,7 +45,7 @@ def main(path, filename='tt.txt', save_res=False, ending='', directory=False):
     files = count_files(path, ending=ending, directory=directory)
     if olddata != {}: # then there is previous data
         if olddata[:-1].isdigit():
-            print files, int(olddata[:-1])
+            print(files, int(olddata[:-1]))
     if save_res:
         store_results(filename, files)
     return files

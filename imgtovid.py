@@ -57,7 +57,7 @@ def create_video(input_dir, n_zeros, output_fname,
                output]
     else:
         raise Exception("avconv or ffmpeg are required to use this utility")
-    print '    {} -> {}'.format(input_dir, output)
+    print('    {} -> {}'.format(input_dir, output))
     return subprocess.call(cmd)
 
 
@@ -94,9 +94,6 @@ def search_for_images(output_dir, dirname, fnames):
         expected = set(range(list_im[0], len(images) + list_im[0]))
         if image_numbers == expected:
             n_zeros = len(image_names[0])
-            print ('{} has contiguous {} files'
-                   ' in range 0-{} ({} padded)').format(
-                dirname, image_type, len(images) - 1, n_zeros)
             create_video(dirname, n_zeros, containing,
                          output_dir=output_dir, image_type=image_type)
         else:
@@ -104,16 +101,41 @@ def search_for_images(output_dir, dirname, fnames):
                   'Potentially missing some images from the sequence.')
 
 
+def my_walk(top, func, arg):
+    """
+    Directory tree walk with callback function.
+
+    For each directory in the directory tree rooted at top (including top
+    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
+
+    Copied from deprecated os.path.walk() from python 2.x.
+    """
+    import stat
+    try:
+        names = os.listdir(top)
+    except os.error:
+        return
+    func(arg, top, names)
+    for name in names:
+        name = os.path.join(top, name)
+        try:
+            st = os.lstat(name)
+        except os.error:
+            continue
+        if stat.S_ISDIR(st.st_mode):
+            my_walk(name, func, arg)
+
+
 def imgtovid(input_dir, output_dir=None):
     if output_dir is None:
         output_dir = path.join(input_dir, 'imgtovid')
     if not path.isdir(output_dir):
         os.makedirs(output_dir)
-    path.walk(input_dir, search_for_images, output_dir)
+    my_walk(input_dir, search_for_images, output_dir)
 
 
 def main(args):
-    print args
+    print(args)
     imgtovid(args.dir, output_dir=args.output)
 
 if __name__ == "__main__":
