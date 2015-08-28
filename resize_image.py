@@ -8,6 +8,7 @@ import sys
 from PIL import Image
 import os
 
+
 def load_image(folder, fileName, imgExts):
     ext = fileName[-3:].lower()
     if ext not in imgExts:
@@ -16,6 +17,7 @@ def load_image(folder, fileName, imgExts):
     im = Image.open(filePath)
     w, h = im.size
     return im, w, h
+
 
 def resize(folder, fileName, factor=None, imgExts=["png", "bmp", "jpg"], w_base=2, h_base=2):
     im, w, h = load_image(folder, fileName, imgExts)
@@ -34,8 +36,8 @@ def bulkResize(imageFolder, factor=None):
         if len(files) == 0:
             continue
         _, w, h = load_image(path, files[0], imgExts)  # load the first image, in order to define the shape (h, w)
-        w = int((w/2)*2)
-        h = int((h/2)*2)
+        w = int((w//2)*2)
+        h = int((h//2)*2)
         try:
             from joblib import Parallel, delayed
             Parallel(n_jobs=-1, verbose=4)(delayed(resize)(path, fileName, factor, imgExts, w, h) for fileName in files)
@@ -47,9 +49,9 @@ def bulkResize(imageFolder, factor=None):
 
 
 if __name__ == "__main__":
-    imageFolder = sys.argv[1] # first arg is path to image folder
+    imageFolder = sys.argv[1]  # first arg is path to image folder
     if len(sys.argv) > 2:
-        resizeFactor = float(sys.argv[2])/100.0 # 2nd is resize in %
+        resizeFactor = float(sys.argv[2])/100.0  # 2nd is resize in %
     else:
         resizeFactor = None
     bulkResize(imageFolder, resizeFactor)

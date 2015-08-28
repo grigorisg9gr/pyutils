@@ -69,7 +69,7 @@ def rename_files(file_path, ext, initial_suffix='', new_suffix='', pad_digits=6,
     if starting_elem < 0:
         print('Cannot start from negative numbering, converting to positive.')
         starting_elem = -starting_elem
-    file_path += sep
+    file_path = os.path.join(file_path, '')  # add a separator if non exists.
     ext = '.' + ext if ext[0] != '.' else ext
     padding = '%.' + str(int(pad_digits)) + 'd'
     list2rename = sorted(glob.glob(file_path + '*' + initial_suffix + ext))
@@ -94,7 +94,7 @@ def change_suffix(file_path, ext, initial_suffix='', new_suffix=''):
     """
     if not is_path(file_path):
         return -1
-    file_path += sep
+    file_path = os.path.join(file_path, '')  # add a separator if non exists.
     ext = '.' + ext if ext[0] != '.' else ext
     end1 = initial_suffix + ext
     end_p = len(end1)
