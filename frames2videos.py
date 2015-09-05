@@ -7,23 +7,11 @@ import warnings
 import sys
 import os
 import imgtovid
-
-# temporarily suppress output: http://thesmithfam.org/blog/2012/10/25/temporarily-suppress-console-output-in-python/
-from contextlib import contextmanager
-
-@contextmanager
-def suppress_stdout():
-    with open(os.devnull, 'w') as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:  
-            yield
-        finally:
-            sys.stdout = old_stdout
+from auxiliary import suppress_stdout
 
 
 def call_imgtovid(path_clip, path_videos):
-    # Calls the imgtovid function to convert one clip's frames to video
+    # Calls the imgtovid function to convert one clip's frames to video.
     try:
         imgtovid.imgtovid(path_clip, path_videos)
     except IOError:

@@ -27,7 +27,7 @@ def clip_to_frames(clip_name, path_video, path_fr_0):
                                  path_frames + '%06d.png'], shell=True)
 
 
-def main(path_base, video_f='mp4/', frames='frames/'):
+def main(path_base, video_f='mp4', frames='frames'):
     """
     Convert different clips (videos) to frames. This function calls the clip_to frames for each clip it finds.
     :param path_base:       The base directory where both the video files should be and the frames that will be written.
@@ -50,8 +50,8 @@ def main(path_base, video_f='mp4/', frames='frames/'):
 if __name__ == '__main__':
     args = len(sys.argv)
     if args < 4:
-        raise Exception('You should provide the base directory, the folder of'
-                        'the clips and the folder that you wish the frames to be saved ')
+        raise Exception('You should provide the base directory, the folder of '
+                        'the clips and the folder that you wish the frames to be saved.')
     main(str(sys.argv[1]), str(sys.argv[2]), str(sys.argv[3]))
 
 
