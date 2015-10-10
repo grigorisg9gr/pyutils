@@ -1,6 +1,7 @@
 import os
 import sys
 import inspect
+import numpy as np
 
 
 def whoami():
@@ -30,3 +31,66 @@ def suppress_stdout():
             yield
         finally:
             sys.stdout = old_stdout
+
+
+def compare_python_types(elem1, elem2, msg='', per_elem_numpy=False):
+    """
+    Compares two python objects (of fundamental types) and returns if they are equal.
+    If they are not, it returns a message of how 'deep' it went till they were not equal.
+    The way that it works is that it checks if elem1 and elem2 have the same type(). If yes,
+    then it iteratively/recursively checks their sub-elements.
+    :param elem1:       First element/object.
+    :param elem2:       Second element/object.
+    :param msg:         (optional) String to be passed in the recursive loop
+    :param per_elem_numpy: (optional) (bool) If the numpy values (if included in the elements)
+    are small floats (e.g. < 0.001) there might be a case that the numpy equality array might
+    return False for some values with difference < 10**(-15). In such a case, if this bool is
+    True, there will be a search if they are close enough.
+    :return:
+    """
+
+    t1 = type(elem1)
+    t2 = type(elem2)
+    if t1 != t2:
+        s = 'Different data types ({} vs {}). \'Path\': {}'.format(t1, t2, msg)
+        return False, s
+    if t1 == int or t1 == float or t1 == str or t1 == bool:
+        return elem1 == elem2, msg
+    elif t1 == list:
+        if len(elem1) != len(elem2):
+            s = 'Different number of elements in the list. \'Path\': {}'.format(msg)
+            return False, s
+        for cnt, el in enumerate(elem1):
+            res, s = compare_python_types(el, elem2[cnt], msg=msg + 'list -> ' + str(cnt) + ' ')
+            if not res:
+                s = 'Different values in element {}.\'Path\': {}'.format(cnt, s)
+                return False, s
+        return True, msg
+    elif t1 == dict:
+        if len(elem1.keys()) != len(elem2.keys()):
+            s = 'Different number of keys. \'Path\': {}'.format(msg)
+            return False, s
+        for k, v in elem1.iteritems():
+            try:
+                v2 = elem2[k]
+            except KeyError:
+                s = 'The key {} does not exist in the second item.\'Path\': {}'.format(k, msg)
+                return False, s
+            res, s = compare_python_types(v, v2, msg=msg + 'dict -> (key): ' + str(k) + ' ')
+            if not res:
+                s = 'Different values in element {}.\'Path\': {}'.format(k, s)
+                return False, s
+        return True, msg
+    elif isinstance(elem1, np.ndarray):
+        ret = np.array_equal(elem1, elem2)
+        if not ret:
+            if per_elem_numpy:
+                ret2 = np.allclose(elem1, elem2, atol=10**(-15))
+                if ret2:
+                    return True, msg
+            return False, msg + 'Not equal in the numpy arrays.'
+        return True, msg
+    elif 'numpy' in str(type(elem1)):  # e.g. numpy.float64
+        return elem1 == elem2, msg
+    else:  # other types of data not supported
+        raise RuntimeError(t1)

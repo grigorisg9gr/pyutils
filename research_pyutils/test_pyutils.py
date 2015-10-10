@@ -274,6 +274,38 @@ class Test_path_related_functions(unittest.TestCase):
         shutil.rmtree(p0)
 
 
+def test_auxiliary_compare_python_types():
+    from auxiliary import compare_python_types
+    a = 4
+    b = 3
+    c, d = compare_python_types(a, b)  # different input
+    assert(not c)
+    c, d = compare_python_types(a, a)  # same input, should be True
+    assert(c)
+    c, d = compare_python_types(a, a*1.0)  # different data types
+    assert(not c)
+
+    a = [4, 4, 3]
+    b = list(a)
+    b.append(9)
+    c, d = compare_python_types(a, b)  # different size of the lists
+    assert(not c)
+    b = list(a)
+    b[2] = ['grigoris']
+    c, d = compare_python_types(a, b)  # different element in the lists
+    assert(not c)
+
+    from numpy.random import random
+    a1 = random((3, 3))
+    c, d = compare_python_types(a1, a1)
+    assert(c)
+    c, d = compare_python_types(a1, a1 + 10**(-16))
+    assert(not c)  # case that they differ a very small number
+    c, d = compare_python_types(a1, a1 + 10**(-16), per_elem_numpy=True)
+    assert(c)
+
+
+
 if __name__ == '__main__':
     import unittest
     from test_pyutils import (TestImgtovid, Testpyutils, Test_path_related_functions)
@@ -285,3 +317,5 @@ if __name__ == '__main__':
 
     suite3 = unittest.TestLoader().loadTestsFromTestCase(Test_path_related_functions)
     unittest.TextTestRunner(verbosity=2).run(suite3)
+
+    test_auxiliary_compare_python_types()
