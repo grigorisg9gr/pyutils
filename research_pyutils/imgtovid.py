@@ -129,8 +129,9 @@ def my_walk(top, func, arg):
 def imgtovid(input_dir, output_dir=None):
     if output_dir is None:
         output_dir = path.join(input_dir, 'imgtovid')
-    if not path.isdir(output_dir):
-        os.makedirs(output_dir)
+    assert(path.isdir(output_dir))
+    #if not path.isdir(output_dir):
+    #    os.makedirs(output_dir)
     my_walk(input_dir, search_for_images, output_dir)
 
 

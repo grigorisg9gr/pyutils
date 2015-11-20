@@ -1,7 +1,7 @@
 # Copyright (C) 2014 Grigorios G. Chrysos
 # available under the terms of the Apache License, Version 2.0
 
-from path_related_functions import (is_path, rename_files, sep)
+from path_related_functions import (is_path, rename_files, sep, mkdir_p)
 import glob
 import warnings
 import sys
@@ -58,7 +58,7 @@ def main(clip_parent_path, vid_fold='1_videos', suppress_print=True):
         return
     list_clips_0 = sorted(os.listdir(clip_parent_path))
     list_clips = [x for x in list_clips_0 if x not in [vid_fold]]
-    p_vid = clip_parent_path + vid_fold + sep
+    p_vid = mkdir_p(clip_parent_path + vid_fold + sep)
     try:									# try to call the imgtovid for every clip in parallel
         from joblib import Parallel, delayed
         Parallel(n_jobs=-1, verbose=4)(delayed(process_clip)(clip, clip_parent_path, p_vid, suppress_print)
