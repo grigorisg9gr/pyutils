@@ -2,11 +2,10 @@
 # available under the terms of the Apache License, Version 2.0
 
 import os
+from os.path import isdir, isfile, sep, join
 import shutil
 import errno
 import glob
-
-sep = os.path.sep  # separator (should be '/' for Linux and '\' for Windows).
 
 
 def mkdir_p(path):
@@ -15,7 +14,7 @@ def mkdir_p(path):
         os.makedirs(path)
         return path
     except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
+        if exc.errno == errno.EEXIST and isdir(path):
             return path
         else:
             raise
@@ -40,7 +39,7 @@ def is_path(path, msg=None, stop_execution=False):
     the path does not exist. If True, then a RuntimeError will be raised, the function will return False.
     :return:                Boolean value. True if the path exists, False otherwise.
     """
-    if not(os.path.isdir(path)):
+    if not(isdir(path)):
         if msg is None:
             msg = 'Not valid path ({})'.format(path)
         if stop_execution:
@@ -64,12 +63,12 @@ def rename_files(file_path, ext, initial_suffix='', new_suffix='', pad_digits=6,
     Should be int, smaller than 10.
     :return:
     """
-    if not is_path(file_path):
+    if not isdir(file_path):
         return -1
     if starting_elem < 0:
         print('Cannot start from negative numbering, converting to positive.')
         starting_elem = -starting_elem
-    file_path = os.path.join(file_path, '')  # add a separator if non exists.
+    file_path = join(file_path, '')  # add a separator if non exists.
     ext = '.' + ext if ext[0] != '.' else ext
     padding = '%.' + str(int(pad_digits)) + 'd'
     list2rename = sorted(glob.glob(file_path + '*' + initial_suffix + ext))
@@ -92,9 +91,9 @@ def change_suffix(file_path, ext, initial_suffix='', new_suffix=''):
     :param new_suffix:      (optional) New suffix (if '', no suffix will be provided).
     :return:
     """
-    if not is_path(file_path):
+    if not isdir(file_path):
         return -1
-    file_path = os.path.join(file_path, '')  # add a separator if non exists.
+    file_path = join(file_path, '')  # add a separator if non exists.
     ext = '.' + ext if ext[0] != '.' else ext
     end1 = initial_suffix + ext
     end_p = len(end1)
@@ -116,7 +115,7 @@ def remove_empty_paths(path, removeRoot=False, verbose=True):
     :return:
     """
     # code similar to: http://www.jacobtomlinson.co.uk/2014/02/16/python-script-recursively-remove-empty-folders-directories/
-    if not os.path.isdir(path):
+    if not isdir(path):
         if verbose:
             print('The path {} does not exist.'.format(path))
         return
@@ -125,8 +124,8 @@ def remove_empty_paths(path, removeRoot=False, verbose=True):
     file_list = os.listdir(path)
     if len(file_list):
         for f in file_list:
-            new_path = os.path.join(path, f)
-            if os.path.isdir(new_path):
+            new_path = join(path, f)
+            if isdir(new_path):
                 remove_empty_paths(new_path, removeRoot=True)
 
     # if the (initial) folder is empty, delete it.
@@ -135,3 +134,15 @@ def remove_empty_paths(path, removeRoot=False, verbose=True):
         if verbose:
             print('Removing the empty path: {}.'.format(path))
         os.rmdir(path)
+
+
+def copy_contents_of_folder(src, dest):
+    """
+    Performs the unix command of 'cp -r [path_0]/* [path_1]'.
+    :param src: (str) Path to copy from.
+    :param dest: (str) Path to copy to.
+    :return:
+    """
+    assert(isdir(src))
+    sepq = os.path.sep
+    os.system('cp -r {}{}* {}'.format(src, sepq, dest))

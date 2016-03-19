@@ -1,5 +1,6 @@
 import unittest
 import os
+from os.path import join, isdir, dirname, realpath, exists
 import sys
 import glob
 import shutil
@@ -61,13 +62,14 @@ class TestImgtovid(unittest.TestCase):
 
         fnames = list(['0001.png', '0002.png', '0003.png'])
         path_out = self.rand_str
-        self.imgtovid.search_for_images(path_out,'.',fnames)
+        self.imgtovid.search_for_images(path_out, '.', fnames)
         self.assertTrue(mock1.called)                   # the method should call the create_video
 
         calls = mock1.mock_calls                        # list of the calls made to the mock of HTTPSession.
         self.assertEqual(len(calls), 1)                 # should be called exactly once
 
-        args1 = calls[0][1]; dict1 = calls[0][2]
+        args1 = calls[0][1]
+        dict1 = calls[0][2]
         self.assertEqual(dict1['output_dir'], path_out) # check that the output path is indeed based on the one search_for_images was called with
         self.assertEquals(dict1['image_type'], 'png')   # check image type
         self.assertEqual(args1[1], 4)                      # check the leading zeros, based on fnames above
@@ -76,7 +78,7 @@ class TestImgtovid(unittest.TestCase):
 class Testpyutils(unittest.TestCase):
     def setUp(self):
         self.rand_str = random_string_gen()
-        self.files_path = os.path.dirname(os.path.realpath(__file__)) + '/'  # dir of the pyutils files
+        self.files_path = dirname(realpath(__file__)) + sep  # dir of the pyutils files
 
     def test_count_files_no_path(self):
         """
@@ -111,7 +113,7 @@ class Testpyutils(unittest.TestCase):
 class Test_path_related_functions(unittest.TestCase):
     def setUp(self):
         self.rand_str = random_string_gen()
-        self.files_path = os.path.dirname(os.path.realpath(__file__)) + '/'  # dir of the pyutils files
+        self.files_path = dirname(realpath(__file__)) + sep  # dir of the pyutils files
         self.test_mkdir_passed = False
         self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
                            '00004.txt', '00002.pt', '00004.pt']
@@ -131,10 +133,10 @@ class Test_path_related_functions(unittest.TestCase):
 
     def test_is_path(self):
         from path_related_functions import is_path
-        self.assertEqual(os.path.isdir(self.files_path), is_path(self.files_path))
-        self.assertEqual(os.path.isdir('/tmp/'), is_path('/tmp/'))
+        self.assertEqual(isdir(self.files_path), is_path(self.files_path))
+        self.assertEqual(isdir('/tmp/'), is_path('/tmp/'))
         p1 = self.files_path + self.rand_str + '/files/'
-        if not os.path.isdir(p1):
+        if not isdir(p1):
             # http://www.lengrand.fr/2011/12/pythonunittest-assertraises-raises-error/
             self.assertRaises(RuntimeError, lambda: is_path(p1, stop_execution=True))
 
@@ -145,11 +147,11 @@ class Test_path_related_functions(unittest.TestCase):
         """
         from path_related_functions import mkdir_p
         fold_in = self.rand_str
-        if not os.path.isdir(self.files_path + fold_in):
+        if not isdir(self.files_path + fold_in):
             test_p = self.files_path + fold_in + '/pyutils/testing/hello/'
             test_return = mkdir_p(test_p)
             self.assertEqual(test_return, test_p)
-            self.assertTrue(os.path.isdir(test_p))
+            self.assertTrue(isdir(test_p))
             import shutil
             shutil.rmtree(self.files_path + fold_in)
             self.test_mkdir_passed = True
@@ -238,7 +240,7 @@ class Test_path_related_functions(unittest.TestCase):
             self.test_mkdir()
         p0 = self.files_path + self.rand_str + sep
         p1 = p0 + 'files' + sep + 'temp' + sep
-        if os.path.isdir(p1):
+        if isdir(p1):
             print('Test of test_rename_files is postponed, since the random path exists.')
             return
         p1 = mkdir_p(p1)
@@ -257,19 +259,19 @@ class Test_path_related_functions(unittest.TestCase):
 
         # test that it actually removes the sub-folders but not the root.
         remove_empty_paths(p0, removeRoot=False, verbose=False)
-        assert(not os.path.isdir(p1))
-        assert(os.path.isdir(p0))
+        assert(not isdir(p1))
+        assert(isdir(p0))
 
         # test that it removes the path including the root.
         p1 = mkdir_p(p1)
         remove_empty_paths(p0, removeRoot=True, verbose=False)
-        assert(not os.path.isdir(p0))
+        assert(not isdir(p0))
 
         # test that it does not remove in case of non-empty folder.
         p1 = mkdir_p(p1)
         open(p1 + 'temp_files.txt', 'a').close()
         remove_empty_paths(p0, removeRoot=True, verbose=False)
-        assert(os.path.isdir(p1))
+        assert(isdir(p1))
         # remove the temp path and files
         shutil.rmtree(p0)
 
@@ -303,7 +305,6 @@ def test_auxiliary_compare_python_types():
     assert(not c)  # case that they differ a very small number
     c, d = compare_python_types(a1, a1 + 10**(-16), per_elem_numpy=True)
     assert(c)
-
 
 
 if __name__ == '__main__':

@@ -2,6 +2,8 @@ import os
 import sys
 import inspect
 import numpy as np
+import time
+import socket
 
 
 def whoami():
@@ -94,3 +96,12 @@ def compare_python_types(elem1, elem2, msg='', per_elem_numpy=False):
         return elem1 == elem2, msg
     else:  # other types of data not supported
         raise RuntimeError(t1)
+
+
+def execution_stats():
+    """
+    Prints some statistics, e.g. name of the machine, time of execution.
+    :return:
+    """
+    print(socket.gethostname())
+    print(time.strftime("%d/%m/%Y, %H:%M:%S"))
