@@ -98,10 +98,18 @@ def compare_python_types(elem1, elem2, msg='', per_elem_numpy=False):
         raise RuntimeError(t1)
 
 
-def execution_stats():
+def execution_stats(return_vars=True, verbose=True):
     """
     Prints some statistics, e.g. name of the machine, time of execution.
+    :param return_vars: (bool, optional) If True, return the time and machine
+           name to the calling function/script.
+    :param verbose:  (bool, optional) If True, print time, machine name.
     :return:
     """
-    print(socket.gethostname())
-    print(time.strftime("%d/%m/%Y, %H:%M:%S"))
+    pc = socket.gethostname()
+    time1 = time.strftime("%d/%m/%Y, %H:%M:%S")
+    if verbose:
+        print(pc)
+        print(time1)
+    if return_vars:
+        return time1, pc
