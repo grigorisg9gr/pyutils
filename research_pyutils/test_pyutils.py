@@ -275,6 +275,35 @@ class Test_path_related_functions(unittest.TestCase):
         # remove the temp path and files
         shutil.rmtree(p0)
 
+    def test_copy_the_previous_if_missing(self):
+        # test similar to the test_rename_files(self).
+        from path_related_functions import copy_the_previous_if_missing
+        p1, _ = self._aux_requiring_mkdir()
+        if not p1:     # Skip test if path is not returned.
+            return
+        lf = ['001.txt', '003.txt', '009.txt']
+        for file1 in lf:
+            # http://stackoverflow.com/a/12654798/1716869
+            open(p1 + file1, 'a').close()
+
+        # unconstrained call (no init_fr, last_fr)
+        copy_the_previous_if_missing(p1)
+        assert(os.path.isfile(p1 + '005.txt'))
+        os.remove(p1 + '005.txt')
+
+        # constrained start
+        copy_the_previous_if_missing(p1, init_fr='006.txt')
+        assert(not os.path.isfile(p1 + '005.txt'))
+
+        # constrained end
+        copy_the_previous_if_missing(p1, last_fr='004.txt')
+        assert(not os.path.isfile(p1 + '005.txt'))
+
+        # TODO: include tests for case of unsimilar names in the
+        # same folder, e.g. 001.pts, 001.txt.
+
+        # remove the temp path and files
+        shutil.rmtree(self.files_path + self.rand_str)
 
 def test_auxiliary_compare_python_types():
     from auxiliary import compare_python_types

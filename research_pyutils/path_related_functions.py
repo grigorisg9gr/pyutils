@@ -146,3 +146,114 @@ def copy_contents_of_folder(src, dest):
     assert(isdir(src))
     sepq = os.path.sep
     os.system('cp -r {}{}* {}'.format(src, sepq, dest))
+
+
+def _get_stem(el):
+    # aux function.
+    return el[:el.rfind('.')]
+
+def _format_string_name_number(pad, name):
+    return '{nam1:0{pad}d}'.format(pad=pad, nam1=name)
+
+def _check_or_initialise(el, l, idx, assertion=False):
+    """
+    Auxiliary function. It checks whether el is part of the list l,
+    otherwise it initialiases it to l[idx].
+    It returns the int of the stem name of the file.
+    :param el: (None or string) Part of the list l if not None.
+    :param l:  (list) List of elements.
+    :param idx: (int) Index in case el is None.
+    :param assertion: (Bool, optional) Raise assertion error if el
+           is not in list l.
+    :return:
+    """
+    assert(isinstance(l, list))
+    if el is None:
+        el = l[idx]
+    elif assertion:
+        assert(el in l)
+    return int(_get_stem(el))
+
+
+def copy_the_previous_if_missing(p, init_fr=None, last_fr=None, verbose=False):
+    """
+    Copies the previous file if it is missing. The result of this function
+    creates a sequential structure of files, starting from the first one till
+    the final one. Works in a folder with files.
+    It sequentially tries to access the files and if they are missing, it copies
+    the previous one.
+    ASSUMPTIONS:
+      a) The naming should be only numbers, e.g. '000034.[suffix]',
+      b) The [suffix] of the first file (listdir) will be copied in case
+         of a missing file.
+
+    :param p:  (string) Base path for performing the copying/checking.
+    :param init_fr: (string, optional) Initial filename to start the
+           checking from. It should exist in the dir p.
+    :param last_fr: (string, optional) Final filename to end the checking.
+           As with the init_fr, it should exist in the dir p.
+    :param verbose: (Bool, optional) Whether to print info about which
+           frames are copied.
+    :return:
+    """
+    from pathlib import Path
+    from shutil import copy2
+    assert(isdir(p))
+    l = sorted(os.listdir(p))
+    # Gets the init_fr. If provided, it verifies that this is indeed included
+    # in the provided listdir in the path. If it None, then the init_fr is
+    # assumed to be the first filename in the listdir.
+    # If NOT provided, then no files before the l[0] are copied, e.g. if
+    # 03.p is the first file, then the 01.p or 02.p are not created.
+    init_fr = _check_or_initialise(init_fr, l, 0)
+    # Similarly for the last_fr.
+    last_fr = _check_or_initialise(last_fr, l, -1)
+    # get an expected list based on init, last filenames.
+    l_run = list(range(init_fr, last_fr + 1))
+    ll, lr = len(l), len(l_run)
+    assert(lr < 100000)  # ensure that it's not infinite.
+    if lr == ll or ll == 0:
+        return
+    # iterator over the 'real' files list (cnt_l). This might be
+    # different than the expected filenames' list, thus a different
+    # counter is required.
+    cnt_l = 0
+    suffix = Path(l[cnt_l]).suffix
+    # prune the 'real' list if required. That is, if the first element is
+    # not the 'real' first element in the path, we should prune the list.
+    c1 = _format_string_name_number(len(l[0]) - len(suffix), init_fr)
+    idx = l.index(c1 + suffix)
+    if idx > 0:
+        l = l[idx :]
+
+    # iterate over the expected elements
+    for cn, el in enumerate(l_run):
+        # get the actual name of the l files (i.e. dump the suffix).
+        nam = _get_stem(l[cnt_l])
+        if el == int(nam):
+            cnt_l += 1
+        else:
+            # missing file, copy previous
+            if cnt_l > 0:
+                prev = el - 1
+            else:
+                prev = int(nam)
+            # format the names of previous and new, based on the correct padding.
+            name_pr = _format_string_name_number(len(nam), prev)
+            name = _format_string_name_number(len(nam), el)
+            # format the filenames paths for the new (i.e. to be copied) and
+            # old (i.e. to copy)files.
+            p_n = p + name + suffix
+            p_o = p + name_pr + suffix
+            assert(isfile(p_o) and not isfile(p_n))
+            if verbose:
+                print('Copying the file {} to the {}.'.format(p_o, p_n))
+            copy2(p_o, p_n)
+
+        if cnt_l == ll and cnt_l > 0:
+            # in that case, we reached the end of the 'real' files list, however
+            # the 'destination' is not achieved in the expected filenames.
+            # Hence, one new dummy element is appended, so that it
+            # copies the rest of the files.
+            l.append(_format_string_name_number(len(nam), 100000) + suffix)
+
