@@ -1,4 +1,5 @@
 from os.path import join, isdir, isfile
+import numpy as np
 import menpo.io as mio
 
 
@@ -55,4 +56,23 @@ def from_ln_to_bb_path(shapes=None, p_in=None, p_out=None, overwrite=None):
     :return:
     """
     f = lambda ln: ln.lms.bounding_box()
-    process_lns_path(f, shapes, p_in, p_out, overwrite)
+    return process_lns_path(f, shapes, p_in, p_out, overwrite)
+
+
+def resize_all_images(images, f=None):
+    """
+    Resizes all images to a new size, defined by the function f.
+    :param images: (list) Menpo images.
+    :param f: (function, optional) If not provided, np.min is considered as the
+        default function. If provided, it should accept a 2d array with all the
+        shapes and return the final shape (2-element numpy vector).
+    :return: (list) Resized menpo images.
+    """
+    if f is None:
+        f = lambda sizes: np.min(sizes, axis=0)
+    sizes = np.array([im.shape for im in images])
+    # define the new size based on f
+    final_size = f(sizes)
+    # resize the images to the final size
+    images_resized = [im.resize(final_size) for im in images]
+    return images_resized

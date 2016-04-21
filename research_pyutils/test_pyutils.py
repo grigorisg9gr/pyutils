@@ -336,6 +336,34 @@ def test_auxiliary_compare_python_types():
     assert(c)
 
 
+class Test_menpo_related_functions(unittest.TestCase):
+    def test_resize_all_images(self):
+        import menpo.io as mio
+        import numpy as np
+        from menpo_related import resize_all_images
+        c = mio.import_builtin_asset
+        ims = [c.lenna_png(), c.takeo_ppm(), c.einstein_jpg()]
+
+        cc = resize_all_images(ims)
+        m = np.min([im.shape for im in ims], axis=0)
+        # check that it is indeed the min
+        assert(np.all(cc[0].shape == m))
+        # ensure that it's smaller than the original
+        assert(np.all(cc[0].shape <= ims[0].shape))
+
+        # apply a different function
+        f = lambda sizes: np.median(sizes, axis=0)
+        cc1 = resize_all_images(ims, f)
+        assert(np.all(cc1[0].shape >= cc[0].shape))
+        assert(np.all(cc1[1].shape >= cc[1].shape))
+
+        # apply a fixed size function
+        f = lambda sizes: np.array([900, 200])
+        cc2 = resize_all_images(ims, f)
+        assert(cc2[0].shape[0] == 900)
+        assert(cc2[1].shape[1] == 200)
+
+
 if __name__ == '__main__':
     import unittest
     from test_pyutils import (TestImgtovid, Testpyutils, Test_path_related_functions)
@@ -349,3 +377,6 @@ if __name__ == '__main__':
     unittest.TextTestRunner(verbosity=2).run(suite3)
 
     test_auxiliary_compare_python_types()
+
+    suite4 = unittest.TestLoader().loadTestsFromTestCase(Test_menpo_related_functions)
+    unittest.TextTestRunner(verbosity=2).run(suite4)
