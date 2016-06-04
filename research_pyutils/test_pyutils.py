@@ -1,6 +1,6 @@
 import unittest
 import os
-from os.path import join, isdir, dirname, realpath, exists
+from os.path import join, isdir, dirname, realpath, exists, isfile
 import sys
 import glob
 import shutil
@@ -124,7 +124,7 @@ class Test_path_related_functions(unittest.TestCase):
         if not self.test_mkdir_passed:
             self.test_mkdir()
         p0 = self.files_path + self.rand_str + sep
-        p1 = p0 + 'files' + sep + 'temp' + sep
+        p1 = join(p0, 'files', 'temp', '')
         if os.path.isdir(p1):
             print('Test of {} is postponed, since the random path exists.'.format(whosparent()))
             return '', ''
@@ -184,7 +184,7 @@ class Test_path_related_functions(unittest.TestCase):
         self.assertEqual(res_bef2, res2)  # .txt2 should be untouched (check different extension).
         res3 = glob.glob(p1 + '*_2.txt')
         self.assertEqual(res_bef3, res3)  # _2.txt should be untouched (check different suffix).
-        self.assertTrue(os.path.exists(p1 + '000000.txt'))  # file is actually renamed.
+        self.assertTrue(exists(p1 + '000000.txt'))  # file is actually renamed.
 
         # rename nr. 2
         self.assertEqual(rename_files(p1,'.txt', new_suffix='9', pad_digits=8), 1)
@@ -192,7 +192,7 @@ class Test_path_related_functions(unittest.TestCase):
         self.assertTrue(lres <= 0)  # no more *.txt should exist in the path.
         res2_2 = glob.glob(p1 + '*.txt2')
         self.assertEqual(res_bef2, res2_2)  # .txt2 should be untouched (check different extension).
-        self.assertTrue(os.path.exists(p1 + '000000009.txt'))  # file is actually renamed (plus new extension added).
+        self.assertTrue(exists(p1 + '000000009.txt'))  # file is actually renamed (plus new extension added).
 
         # rename nr. 3
         pt_bef = sorted(glob.glob(p1 + '*.pt'))
@@ -305,6 +305,41 @@ class Test_path_related_functions(unittest.TestCase):
         # remove the temp path and files
         shutil.rmtree(self.files_path + self.rand_str)
 
+
+class Test_filenames_changes_functions(unittest.TestCase):
+    def setUp(self):
+        self.rand_str = random_string_gen()
+        self.files_path = dirname(realpath(__file__)) + sep  # dir of the pyutils files
+        self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
+                           '00004.txt', '00002.pt', '00004.pt']
+
+    def test_strip_filenames(self):
+        # create the path
+        from path_related_functions import mkdir_p
+        p1 = join(self.files_path, self.rand_str, 'files', 'temp', '')
+        mkdir_p(p1)
+
+        lf = ['001@#$%*(&* 00.txt', '003.88.999. 0.txt', '009ASD.tt']
+        stripped = ['00100.txt', '003.88.999.0.txt', '009ASD.tt']
+        for file1 in lf:
+            # http://stackoverflow.com/a/12654798/1716869
+            open(p1 + file1, 'a').close()
+
+        from filenames_changes import strip_filenames
+        # test 1: convert with an extension
+        strip_filenames(p1, ext='.txt')
+        assert(isfile(p1 + stripped[0]))
+        assert(isfile(p1 + lf[-1]))
+
+        # test: convert all
+        strip_filenames(p1)
+        for file1 in stripped:
+            assert(isfile(p1 + file1))
+
+        # remove the temp path and files
+        shutil.rmtree(self.files_path + self.rand_str)
+
+
 def test_auxiliary_compare_python_types():
     from auxiliary import compare_python_types
     a = 4
@@ -380,3 +415,6 @@ if __name__ == '__main__':
 
     suite4 = unittest.TestLoader().loadTestsFromTestCase(Test_menpo_related_functions)
     unittest.TextTestRunner(verbosity=2).run(suite4)
+
+    suite5 = unittest.TestLoader().loadTestsFromTestCase(Test_filenames_changes_functions)
+    unittest.TextTestRunner(verbosity=2).run(suite5)
