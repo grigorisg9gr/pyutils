@@ -1,6 +1,6 @@
 import unittest
 import os
-from os.path import join, isdir, dirname, realpath, exists
+from os.path import join, isdir, dirname, realpath, exists, isfile
 import sys
 import glob
 import shutil
@@ -123,8 +123,10 @@ class Test_path_related_functions(unittest.TestCase):
         from path_related_functions import mkdir_p
         if not self.test_mkdir_passed:
             self.test_mkdir()
+        # ATTENTION: The path below should NOT change, otherwise there might be an
+        # issue when removing the paths in the testing of the methods.
         p0 = self.files_path + self.rand_str + sep
-        p1 = p0 + 'files' + sep + 'temp' + sep
+        p1 = join(p0, 'files', 'temp', '')
         if os.path.isdir(p1):
             print('Test of {} is postponed, since the random path exists.'.format(whosparent()))
             return '', ''
@@ -157,81 +159,6 @@ class Test_path_related_functions(unittest.TestCase):
             self.test_mkdir_passed = True
         else:
             print('Test of test_mkdir is postponed, since the random path exists.')
-
-    def test_rename_files(self):
-        from path_related_functions import rename_files
-        p1, _ = self._aux_requiring_mkdir()
-        if not p1:
-            return
-        for file1 in self.list_files:
-            open(p1 + file1, 'a').close()  # http://stackoverflow.com/a/12654798/1716869
-        res_bef2 = glob.glob(p1 + '*.txt2')
-        self.assertTrue(len(res_bef2) > 0)
-        res_bef3 = glob.glob(p1 + '*_2.txt')
-
-        # test no rename cases
-        self.assertEqual(rename_files(p1 + self.rand_str, 'txt'), -1)  # non-existent path
-        tr = sorted(os.listdir(p1))
-        rename_files(p1, self.rand_str)  # non-existent extension of files
-        self.assertEqual(tr, sorted(os.listdir(p1)))
-
-        #  rename nr. 1
-        self.assertEqual(rename_files(p1, 'txt', '_1', pad_digits=6), 1)
-        lres = len(glob.glob(p1 + '*_1.txt'))
-        print lres
-        self.assertEqual(lres, 0)  # no more _1.txt should exist in the path.
-        res2 = glob.glob(p1 + '*.txt2')
-        self.assertEqual(res_bef2, res2)  # .txt2 should be untouched (check different extension).
-        res3 = glob.glob(p1 + '*_2.txt')
-        self.assertEqual(res_bef3, res3)  # _2.txt should be untouched (check different suffix).
-        self.assertTrue(os.path.exists(p1 + '000000.txt'))  # file is actually renamed.
-
-        # rename nr. 2
-        self.assertEqual(rename_files(p1,'.txt', new_suffix='9', pad_digits=8), 1)
-        lres = len(glob.glob(p1 + '_*.txt'))
-        self.assertTrue(lres <= 0)  # no more *.txt should exist in the path.
-        res2_2 = glob.glob(p1 + '*.txt2')
-        self.assertEqual(res_bef2, res2_2)  # .txt2 should be untouched (check different extension).
-        self.assertTrue(os.path.exists(p1 + '000000009.txt'))  # file is actually renamed (plus new extension added).
-
-        # rename nr. 3
-        pt_bef = sorted(glob.glob(p1 + '*.pt'))
-        rename_files(p1, '.pt', pad_digits=5, starting_elem=8)
-        pt_aft = sorted(glob.glob(p1 + '*.pt'))
-        self.assertEqual(len(pt_bef), len(pt_aft))  # number of files should be the same.
-        self.assertTrue(pt_bef[0] not in pt_aft)  # files should be renamed.
-        pt_final = pt_aft[0][pt_aft[0].rfind('/')+1:]
-        self.assertEqual(int(pt_final[:pt_final.rfind('.')]), 8)  # first element should be [0*]8.pt.
-
-        # remove the temp path and files
-        shutil.rmtree(self.files_path + self.rand_str)
-
-    def test_change_suffix(self):
-        # test similar to the test_rename_files(self).
-        from path_related_functions import change_suffix
-        p1, _ = self._aux_requiring_mkdir()
-        if not p1:     # Skip test if path is not returned.
-            return
-        for file1 in self.list_files:
-            open(p1 + file1, 'a').close()  # http://stackoverflow.com/a/12654798/1716869
-        res_bef2 = glob.glob(p1 + '*.txt2')
-        self.assertTrue(len(res_bef2) > 0)
-        res_bef3 = glob.glob(p1 + '*_2.txt')
-
-        # test no rename cases
-        self.assertEqual(change_suffix(p1 + self.rand_str, 'txt'), -1)  # non-existent path
-        tr = sorted(os.listdir(p1))
-        change_suffix(p1, self.rand_str)  # non-existent extension of files
-        self.assertEqual(tr, sorted(os.listdir(p1)))
-
-        self.assertEqual(change_suffix(p1,'.txt', new_suffix='9'), 1)
-        lres = len(glob.glob(p1 + '_*.txt'))
-        self.assertTrue(lres <= 0)  # no more *.txt should exist in the path.
-        res2_2 = glob.glob(p1 + '*.txt2')
-        self.assertEqual(res_bef2, res2_2)  # .txt2 should be untouched (check different extension).
-
-        # remove the temp path and files
-        shutil.rmtree(self.files_path + self.rand_str)
 
     def test_remove_empty_paths(self):
         # test similar to the test_rename_files(self).
@@ -304,6 +231,122 @@ class Test_path_related_functions(unittest.TestCase):
 
         # remove the temp path and files
         shutil.rmtree(self.files_path + self.rand_str)
+
+
+class Test_filenames_changes_functions(unittest.TestCase):
+    def setUp(self):
+        self.rand_str = random_string_gen()
+        self.files_path = dirname(realpath(__file__)) + sep  # dir of the pyutils files
+        self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
+                           '00004.txt', '00002.pt', '00004.pt']
+
+    def _aux_create_path(self):
+        # creates a stanrd path in the disk for testing.
+        from path_related_functions import mkdir_p
+        # ATTENTION: The path below should NOT change, otherwise there might be an
+        # issue when removing the paths in the testing of the methods.
+        p1 = join(self.files_path, self.rand_str, 'files', 'temp', '')
+        if isdir(p1):
+            mm = 'Test path of {} exists already, potentially issue in testing.'
+            print(mm.format(p1))
+        return mkdir_p(p1)
+
+    def test_rename_files(self):
+        from filenames_changes import rename_files
+        p1 = self._aux_create_path()
+        for file1 in self.list_files:
+            open(p1 + file1, 'a').close()  # http://stackoverflow.com/a/12654798/1716869
+        res_bef2 = glob.glob(p1 + '*.txt2')
+        self.assertTrue(len(res_bef2) > 0)
+        res_bef3 = glob.glob(p1 + '*_2.txt')
+
+        # test no rename cases
+        self.assertEqual(rename_files(p1 + self.rand_str, 'txt'), -1)  # non-existent path
+        tr = sorted(os.listdir(p1))
+        rename_files(p1, self.rand_str)  # non-existent extension of files
+        self.assertEqual(tr, sorted(os.listdir(p1)))
+
+        #  rename nr. 1
+        self.assertEqual(rename_files(p1, 'txt', '_1', pad_digits=6), 1)
+        lres = len(glob.glob(p1 + '*_1.txt'))
+        print lres
+        self.assertEqual(lres, 0)  # no more _1.txt should exist in the path.
+        res2 = glob.glob(p1 + '*.txt2')
+        self.assertEqual(res_bef2, res2)  # .txt2 should be untouched (check different extension).
+        res3 = glob.glob(p1 + '*_2.txt')
+        self.assertEqual(res_bef3, res3)  # _2.txt should be untouched (check different suffix).
+        self.assertTrue(exists(p1 + '000000.txt'))  # file is actually renamed.
+
+        # rename nr. 2
+        self.assertEqual(rename_files(p1,'.txt', new_suffix='9', pad_digits=8), 1)
+        lres = len(glob.glob(p1 + '_*.txt'))
+        self.assertTrue(lres <= 0)  # no more *.txt should exist in the path.
+        res2_2 = glob.glob(p1 + '*.txt2')
+        self.assertEqual(res_bef2, res2_2)  # .txt2 should be untouched (check different extension).
+        self.assertTrue(exists(p1 + '000000009.txt'))  # file is actually renamed (plus new extension added).
+
+        # rename nr. 3
+        pt_bef = sorted(glob.glob(p1 + '*.pt'))
+        rename_files(p1, '.pt', pad_digits=5, starting_elem=8)
+        pt_aft = sorted(glob.glob(p1 + '*.pt'))
+        self.assertEqual(len(pt_bef), len(pt_aft))  # number of files should be the same.
+        self.assertTrue(pt_bef[0] not in pt_aft)  # files should be renamed.
+        pt_final = pt_aft[0][pt_aft[0].rfind('/')+1:]
+        self.assertEqual(int(pt_final[:pt_final.rfind('.')]), 8)  # first element should be [0*]8.pt.
+
+        # remove the temp path and files
+        shutil.rmtree(self.files_path + self.rand_str)
+
+    def test_change_suffix(self):
+        # test similar to the test_rename_files(self).
+        from filenames_changes import change_suffix
+        p1 = self._aux_create_path()
+
+        for file1 in self.list_files:
+            open(p1 + file1, 'a').close()  # http://stackoverflow.com/a/12654798/1716869
+        res_bef2 = glob.glob(p1 + '*.txt2')
+        self.assertTrue(len(res_bef2) > 0)
+        res_bef3 = glob.glob(p1 + '*_2.txt')
+
+        # test no rename cases
+        self.assertEqual(change_suffix(p1 + self.rand_str, 'txt'), -1)  # non-existent path
+        tr = sorted(os.listdir(p1))
+        change_suffix(p1, self.rand_str)  # non-existent extension of files
+        self.assertEqual(tr, sorted(os.listdir(p1)))
+
+        self.assertEqual(change_suffix(p1,'.txt', new_suffix='9'), 1)
+        lres = len(glob.glob(p1 + '_*.txt'))
+        self.assertTrue(lres <= 0)  # no more *.txt should exist in the path.
+        res2_2 = glob.glob(p1 + '*.txt2')
+        self.assertEqual(res_bef2, res2_2)  # .txt2 should be untouched (check different extension).
+
+        # remove the temp path and files
+        shutil.rmtree(self.files_path + self.rand_str)
+
+    def test_strip_filenames(self):
+        # create the path
+        p1 = self._aux_create_path()
+
+        lf = ['001@#$%*(&* 00.txt', '003.88.999. 0.txt', '009ASD.tt']
+        stripped = ['00100.txt', '003.88.999.0.txt', '009ASD.tt']
+        for file1 in lf:
+            # http://stackoverflow.com/a/12654798/1716869
+            open(p1 + file1, 'a').close()
+
+        from filenames_changes import strip_filenames
+        # test 1: convert with an extension
+        strip_filenames(p1, ext='.txt')
+        assert(isfile(p1 + stripped[0]))
+        assert(isfile(p1 + lf[-1]))
+
+        # test: convert all
+        strip_filenames(p1)
+        for file1 in stripped:
+            assert(isfile(p1 + file1))
+
+        # remove the temp path and files
+        shutil.rmtree(self.files_path + self.rand_str)
+
 
 def test_auxiliary_compare_python_types():
     from auxiliary import compare_python_types
@@ -380,3 +423,6 @@ if __name__ == '__main__':
 
     suite4 = unittest.TestLoader().loadTestsFromTestCase(Test_menpo_related_functions)
     unittest.TextTestRunner(verbosity=2).run(suite4)
+
+    suite5 = unittest.TestLoader().loadTestsFromTestCase(Test_filenames_changes_functions)
+    unittest.TextTestRunner(verbosity=2).run(suite5)
