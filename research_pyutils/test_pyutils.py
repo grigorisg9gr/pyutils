@@ -101,14 +101,6 @@ class Testpyutils(unittest.TestCase):
         ret = count_files(path_in)
         self.assertTrue(ret <= 0)
 
-    def test_corrupted_file_load_image_in_resize_image(self):
-        if 'linux' in sys.platform:
-            import subprocess
-            subprocess.check_output(['touch ' + '/tmp/00001.png'], shell=True)
-            from resize_image import load_image
-            im, w, h = load_image('/tmp/', '00001.png', ['png'])
-            assert(im == [])
-
 
 class Test_path_related_functions(unittest.TestCase):
     def setUp(self):
