@@ -8,10 +8,10 @@ import errno
 import glob
 
 
-def mkdir_p(path):
+def mkdir_p(path, mode=500):
     """ 'mkdir -p' in Python. """
     try:  # http://stackoverflow.com/a/11860637/1716869
-        os.makedirs(path)
+        os.makedirs(path, mode=mode)
         return path
     except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and isdir(path):
