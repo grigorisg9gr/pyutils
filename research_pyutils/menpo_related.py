@@ -76,3 +76,37 @@ def resize_all_images(images, f=None):
     # resize the images to the final size
     images_resized = [im.resize(final_size) for im in images]
     return images_resized
+
+
+# aux function to transform the bb in a [y_min, x_min, y_max, x_max format].
+# pts can be of a bounding box/landmark points format.
+bb_format_minmax = lambda pts : [np.min(pts[:, 0]), np.min(pts[:, 1]), 
+                                 np.max(pts[:, 0]), np.max(pts[:, 1])]
+
+# aux function to compute the area covered by a bounding box.
+# Expects a bounding box in a format of [y_min, x_min, y_max, x_max].
+bb_area = lambda bb : (bb[3] - bb[1] + 1) * (bb[2] - bb[0] + 1)
+
+
+def compute_overlap(pt0, pt1):
+    """
+    Computes the overlap between two bounding boxes.
+    The overlap is defined as:
+        area of intersection / area of union
+    The bounding boxes are expected in a numpy 2d array
+    e.g. like the lms.points of menpo bounding boxes.
+    """
+
+    b0 = bb_format_minmax(pt0)
+    b1 = bb_format_minmax(pt1)
+    # bounding box of intersection
+    bb_i = [max(b0[0], b1[0]), max(b0[1], b1[1]), 
+            min(b0[2], b1[2]), min(b0[3], b1[3])]
+    
+    inter_area = bb_area(bb_i)
+    overlap = 0.
+    if (bb_i[3] - bb_i[1] + 1 > 0) and inter_area > 0:
+        union_area = bb_area(b0) + bb_area(b1) - inter_area
+        overlap = inter_area / union_area
+        
+    return overlap
