@@ -93,7 +93,7 @@ def compute_overlap(pt0, pt1):
     Computes the overlap between two bounding boxes.
     The overlap is defined as:
         area of intersection / area of union
-    The bounding boxes are expected in a numpy 2d array
+    The bounding boxes (pt0, pt1) are expected in a numpy 2d array
     e.g. like the lms.points of menpo bounding boxes.
     """
 

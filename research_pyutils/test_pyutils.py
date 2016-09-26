@@ -3,7 +3,14 @@ import os
 from os.path import join, isdir, dirname, realpath, exists, isfile
 import sys
 import glob
+import numpy as np
 import shutil
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 sep = os.path.sep
 
 
@@ -109,6 +116,7 @@ class Test_path_related_functions(unittest.TestCase):
         self.test_mkdir_passed = False
         self.list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
                            '00004.txt', '00002.pt', '00004.pt']
+        self.mkdir_msg = 'Test of {} is postponed, since the random path exists.'
 
     def _aux_requiring_mkdir(self):
         from auxiliary import whosparent
@@ -120,7 +128,7 @@ class Test_path_related_functions(unittest.TestCase):
         p0 = self.files_path + self.rand_str + sep
         p1 = join(p0, 'files', 'temp', '')
         if os.path.isdir(p1):
-            print('Test of {} is postponed, since the random path exists.'.format(whosparent()))
+            print(self.mkdir_msg.format(whosparent()))
             return '', ''
         p1 = mkdir_p(p1)
         return p1, p0
@@ -150,7 +158,7 @@ class Test_path_related_functions(unittest.TestCase):
             shutil.rmtree(self.files_path + fold_in)
             self.test_mkdir_passed = True
         else:
-            print('Test of test_mkdir is postponed, since the random path exists.')
+            print(self.mkdir_msg.format('test_mkdir'))
 
     def test_remove_empty_paths(self):
         # test similar to the test_rename_files(self).
@@ -160,19 +168,18 @@ class Test_path_related_functions(unittest.TestCase):
         p0 = self.files_path + self.rand_str + sep
         p1 = p0 + 'files' + sep + 'temp' + sep
         if isdir(p1):
-            print('Test of test_rename_files is postponed, since the random path exists.')
+            print(self.mkdir_msg.format('test_rename_files'))
             return
         p1 = mkdir_p(p1)
 
         # test that for non existent paths, it prints 'error' message.
-        from StringIO import StringIO
         p2 = p1 + 'temp_ia' + sep  # non-existent path
         saved_stdout = sys.stdout
         out = StringIO()
         sys.stdout = out
         remove_empty_paths(p2, verbose=True)
         output = out.getvalue().strip()
-        print output
+        print(output)
         assert('not exist' in output)
         sys.stdout = saved_stdout
 
@@ -261,7 +268,7 @@ class Test_filenames_changes_functions(unittest.TestCase):
         #  rename nr. 1
         self.assertEqual(rename_files(p1, 'txt', '_1', pad_digits=6), 1)
         lres = len(glob.glob(p1 + '*_1.txt'))
-        print lres
+        print(lres)
         self.assertEqual(lres, 0)  # no more _1.txt should exist in the path.
         res2 = glob.glob(p1 + '*.txt2')
         self.assertEqual(res_bef2, res2)  # .txt2 should be untouched (check different extension).
@@ -372,9 +379,18 @@ def test_auxiliary_compare_python_types():
 
 
 class Test_menpo_related_functions(unittest.TestCase):
+    # These tests will fail in case menpo does not exist.
+    def init_grigoris(self):
+        try:
+            import menpo.io as mio
+        except ImportError:
+            m1 = ('Menpo cannot be imported, so the related tests\n'
+                  'nught fail.')
+            print(m1)
+
     def test_resize_all_images(self):
+        self.init_grigoris()
         import menpo.io as mio
-        import numpy as np
         from menpo_related import resize_all_images
         c = mio.import_builtin_asset
         ims = [c.lenna_png(), c.takeo_ppm(), c.einstein_jpg()]
@@ -397,6 +413,26 @@ class Test_menpo_related_functions(unittest.TestCase):
         cc2 = resize_all_images(ims, f)
         assert(cc2[0].shape[0] == 900)
         assert(cc2[1].shape[1] == 200)
+
+    def test_compute_overlap(self):
+        import menpo.io as mio
+        from menpo_related import compute_overlap
+        # import a builtin landmark file
+        ln = mio.import_builtin_asset.lenna_ljson()
+
+        # convert it first to a bounding box:
+        bb0 = ln.lms.bounding_box()
+        # first test with same overlap.
+        ov1 = compute_overlap(bb0.points, bb0.points)
+        assert np.allclose(ov1, 1.)
+        # test now the bb vs the ln points
+        ov2 = compute_overlap(bb0.points, ln.lms.points)
+        assert np.allclose(ov2, 1.)
+
+        bb1 = bb0.points - 400
+        ov3 = compute_overlap(bb0.points, bb1)
+        assert np.allclose(ov3, 0.)
+
 
 
 if __name__ == '__main__':
