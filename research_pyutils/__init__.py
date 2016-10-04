@@ -5,7 +5,7 @@ from .path_related_functions import (mkdir_p, rm_if_exists,
                                      copy_the_previous_if_missing)
 
 from .menpo_related import (resize_all_images, from_ln_to_bb_path,
-                            process_lns_path)
+                            process_lns_path, compute_overlap)
 
 from .filenames_changes import (rename_files, change_suffix,
                                 strip_filenames)

@@ -5,8 +5,9 @@ import os
 from os.path import isdir, isfile, sep, join
 import shutil
 import errno
-import glob
+from glob import glob
 
+# TO-DO: put progress bars in all the packages with time-consuming loops.
 
 def mkdir_p(path, mode=500):
     """ 'mkdir -p' in Python. """
@@ -200,4 +201,20 @@ def copy_the_previous_if_missing(p, init_fr=None, last_fr=None, verbose=False):
             # Hence, one new dummy element is appended, so that it
             # copies the rest of the files.
             l.append(_format_string_name_number(len(nam), 100000) + suffix)
+
+
+def unzip_all_dir(p):
+    """
+    Unzips all the zip folders in the directory.
+    :param p: (string) Path with all the zips.
+    :return: None
+    """
+    from zipfile import ZipFile
+    m = 'There is no such path with zips (p = {}).'
+    assert isdir(p), m.format(p)
+    all_zips = glob(join(p, '*.zip'))
+    for zi in all_zips:
+        zip_ref = ZipFile(zi, 'r')
+        zip_ref.extractall()
+        zip_ref.close()
 
