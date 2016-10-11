@@ -81,16 +81,17 @@ def remove_empty_paths(path, removeRoot=False, verbose=True):
         os.rmdir(path)
 
 
-def copy_contents_of_folder(src, dest):
+def copy_contents_of_folder(src, dest, suffix=''):
     """
-    Performs the unix command of 'cp -r [path_0]/* [path_1]'.
+    Performs the unix command of 'cp -r [path_0]/*[suffix] [path_1]'.
     :param src: (str) Path to copy from.
     :param dest: (str) Path to copy to.
+    :param suffix: (Optional, str) The suffix/extension of the files.
     :return:
     """
     assert(isdir(src))
     sepq = os.path.sep
-    os.system('cp -r {}{}* {}'.format(src, sepq, dest))
+    os.system('cp -r {}{}*{} {}'.format(src, sepq, suffix, dest))
 
 
 def _get_stem(el):
@@ -203,18 +204,25 @@ def copy_the_previous_if_missing(p, init_fr=None, last_fr=None, verbose=False):
             l.append(_format_string_name_number(len(nam), 100000) + suffix)
 
 
-def unzip_all_dir(p):
+def unzip_all_dir(p, extension='zip'):
     """
     Unzips all the zip folders in the directory.
     :param p: (string) Path with all the zips.
+    :param extension: (string, optional) The extension/compressed format 
+           of the files.
     :return: None
     """
     from zipfile import ZipFile
+    import tarfile
     m = 'There is no such path with zips (p = {}).'
     assert isdir(p), m.format(p)
-    all_zips = glob(join(p, '*.zip'))
+    all_zips = glob(join(p, '*.{}'.format(extension)))
     for zi in all_zips:
-        zip_ref = ZipFile(zi, 'r')
-        zip_ref.extractall()
-        zip_ref.close()
+        if extension == 'zip':
+           compr_ref = ZipFile(zi, 'r')
+        else:
+           # right now only these two formats supported.
+           compr_ref = tarfile.open(zi, 'r')
+        compr_ref.extractall(p)
+        compr_ref.close()
 
