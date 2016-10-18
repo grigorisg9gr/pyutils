@@ -54,7 +54,8 @@ class TestImgtovid(unittest.TestCase):
 
         # test that it returns the right type of extension
         self.assertEqual(find_image_type('.', self.rand_str + '.png'), 'png')
-        self.assertEqual(find_image_type('.', self.rand_str + '.66554.jpg.jpeg.png'), 'png')  #case with more dots in the filename
+        # case with more dots in the filename
+        self.assertEqual(find_image_type('.', self.rand_str + '.66554.jpg.jpeg.png'), 'png')
         self.assertEqual(find_image_type('.', self.rand_str + '.jpg'), 'jpg')
 
 
@@ -77,9 +78,11 @@ class TestImgtovid(unittest.TestCase):
 
         args1 = calls[0][1]
         dict1 = calls[0][2]
-        self.assertEqual(dict1['output_dir'], path_out) # check that the output path is indeed based on the one search_for_images was called with
-        self.assertEquals(dict1['image_type'], 'png')   # check image type
-        self.assertEqual(args1[1], 4)                      # check the leading zeros, based on fnames above
+        # check that the output path is indeed based on the one search_for_images was called with
+        self.assertEqual(dict1['output_dir'], path_out)
+        self.assertEquals(dict1['image_type'], 'png')
+        # check the leading zeros, based on fnames above
+        self.assertEqual(args1[1], 4)
 
 
 class Testpyutils(unittest.TestCase):

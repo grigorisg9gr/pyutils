@@ -1,16 +1,15 @@
 import subprocess
-import os
+from os.path import isdir
+
 
 def count_files(path='.', ending='', directory=False):
     """Finds the number of files in the specified path
     Option to specify if only directories should be counted or if a specific ending should be searched."""
-    if not os.path.isdir(path):
-        print('The path is not valid.')
-        return -1
-    if not directory:
-        p = subprocess.check_output(['find ' + path + ' -name "*' + ending + '" -print | wc -l'], shell=True)
-    else:
-        p = subprocess.check_output(['find ' + path + ' -type d -name "*' + ending + '" -print | wc -l'], shell=True)
+    assert isdir(path), 'The initial path is not valid.'
+    add_arg = ''
+    if directory:
+        add_arg = ' -type d '
+    p = subprocess.check_output(['find ' + path + add_arg + ' -name "*' + ending + '" -print | wc -l'], shell=True)
     return int(p[:-1])  # ignore the \n in the end
 
 
