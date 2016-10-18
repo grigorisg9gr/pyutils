@@ -1,6 +1,7 @@
 import unittest
 import os
 from os.path import join, isdir, dirname, realpath, exists, isfile
+from os import listdir
 import sys
 import glob
 import numpy as np
@@ -90,26 +91,7 @@ class Testpyutils(unittest.TestCase):
         self.rand_str = random_string_gen()
         self.files_path = dirname(realpath(__file__)) + sep  # dir of the pyutils files
 
-    def test_count_files_no_path(self):
-        """
-        Confirm that when count_files (in file_counter.py) is called:
-         a) in the pyutils dir, it returns at least two files.
-         b) in a non-existent path, it returns negative number of files,
-        """
-        from file_counter import count_files
-        path_in = self.rand_str
 
-        ret = count_files(self.files_path)
-        self.assertTrue(ret >= 2)
-        # test that all files are more than if just counting directories.
-        self.assertTrue(ret >= count_files(self.files_path, directory=True))
-        # test that all files in the (sub-)directories are more than those in the current path
-        self.assertTrue(ret >= len(os.listdir(self.files_path)))
-        if os.path.isdir(path_in):  # if by chance it is a path, continue.
-            print('Well, %s is a path in this pc.' % path_in)
-            return
-        ret = count_files(path_in)
-        self.assertTrue(ret <= 0)
 
 
 class Test_path_related_functions(unittest.TestCase):
@@ -123,7 +105,7 @@ class Test_path_related_functions(unittest.TestCase):
 
     def _aux_requiring_mkdir(self):
         from auxiliary import whosparent
-        from path_related_functions import mkdir_p
+        from path_related import mkdir_p
         if not self.test_mkdir_passed:
             self.test_mkdir()
         # ATTENTION: The path below should NOT change, otherwise there might be an
@@ -137,7 +119,7 @@ class Test_path_related_functions(unittest.TestCase):
         return p1, p0
 
     def test_is_path(self):
-        from path_related_functions import is_path
+        from path_related import is_path
         self.assertEqual(isdir(self.files_path), is_path(self.files_path))
         self.assertEqual(isdir('/tmp/'), is_path('/tmp/'))
         p1 = self.files_path + self.rand_str + '/files/'
@@ -150,7 +132,7 @@ class Test_path_related_functions(unittest.TestCase):
         Create a path and confirm that the mkdir_p performs as expected:
         a) returns the path, b) the path indeed is created in the os.
         """
-        from path_related_functions import mkdir_p
+        from path_related import mkdir_p
         fold_in = self.rand_str
         if not isdir(self.files_path + fold_in):
             test_p = self.files_path + fold_in + '/pyutils/testing/hello/'
@@ -165,7 +147,7 @@ class Test_path_related_functions(unittest.TestCase):
 
     def test_remove_empty_paths(self):
         # test similar to the test_rename_files(self).
-        from path_related_functions import (mkdir_p, remove_empty_paths)
+        from path_related import (mkdir_p, remove_empty_paths)
         if not self.test_mkdir_passed:
             self.test_mkdir()
         p0 = self.files_path + self.rand_str + sep
@@ -206,7 +188,7 @@ class Test_path_related_functions(unittest.TestCase):
 
     def test_copy_the_previous_if_missing(self):
         # test similar to the test_rename_files(self).
-        from path_related_functions import copy_the_previous_if_missing
+        from path_related import copy_the_previous_if_missing
         p1, _ = self._aux_requiring_mkdir()
         if not p1:     # Skip test if path is not returned.
             return
@@ -234,6 +216,22 @@ class Test_path_related_functions(unittest.TestCase):
         # remove the temp path and files
         shutil.rmtree(self.files_path + self.rand_str)
 
+    def test_count_files_no_path(self):
+        """
+        Confirm that when count_files (in file_counter.py) is called:
+         a) in the pyutils dir, it returns at least two files.
+         b) in a non-existent path, it returns negative number of files,
+        """
+        from path_related import count_files
+        path_in = self.rand_str
+
+        ret = count_files(self.files_path)
+        self.assertTrue(ret >= 2)
+        # test that all files are more than if just counting directories.
+        self.assertTrue(ret >= count_files(self.files_path, directory=True))
+        # test that all files in the (sub-)directories are more than those in the current path
+        self.assertTrue(ret >= len(os.listdir(self.files_path)))
+
 
 class Test_filenames_changes_functions(unittest.TestCase):
     def setUp(self):
@@ -244,7 +242,7 @@ class Test_filenames_changes_functions(unittest.TestCase):
 
     def _aux_create_path(self):
         # creates a stanrd path in the disk for testing.
-        from path_related_functions import mkdir_p
+        from path_related import mkdir_p
         # ATTENTION: The path below should NOT change, otherwise there might be an
         # issue when removing the paths in the testing of the methods.
         p1 = join(self.files_path, self.rand_str, 'files', 'temp', '')
