@@ -6,6 +6,8 @@ from os.path import isdir, isfile, sep, join
 import shutil
 import errno
 from glob import glob
+from subprocess import check_output
+from subprocess import check_output
 
 # TO-DO: put progress bars in all the packages with time-consuming loops.
 
@@ -226,3 +228,34 @@ def unzip_all_dir(p, extension='zip'):
         compr_ref.extractall(p)
         compr_ref.close()
 
+
+def count_files(path='.', ending='', directory=False, subdirs=False):
+    """
+    It counts the files in the current directory and the subfolders.
+    There is the options to count only in the current directory (and
+    not in the subfolders), or to count only files with certain extensions.
+
+    :param path:   (string, optional) The base path to count the files in.
+    :param ending: (string, optional) The extension/suffix of the files
+        to search for. Only makes sense if directory=False.
+    :param directory: (string, optional) If True, then it *only* counts the
+        number of directories (folders). The called one is also counted.
+        If False, then it just counts the files.
+    :param subdirs: (string, optional) If False, it counts only in this
+        directory and not the subfolders. If True, it recursively counts
+        the files in the subfolders as well.
+    :return: (int) The number of files.
+    """
+    assert isdir(path), 'The initial path does not exist.'
+    if not subdirs:
+        # in this case, we just care for the first
+        # level, apply the fastest method.
+        cmd = 'ls -f {}*{} | wc -l'.format(path, ending)
+    else:
+        add_arg = ''
+        if directory:
+            add_arg = ' -type d '
+        cmd = 'find {}{} -name "*{}" -print | wc -l'.format(path, add_arg, ending)
+    nr_files = check_output(cmd, shell=True)
+    # get rid of the \n in the end and return.
+    return int(nr_files[:-1])
