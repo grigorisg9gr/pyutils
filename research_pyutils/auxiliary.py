@@ -113,3 +113,30 @@ def execution_stats(return_vars=True, verbose=True):
         print(time1)
     if return_vars:
         return time1, pc
+
+
+def populate_visual_options(l1, new_len=40):
+    """
+    Auxiliary function for populating the list elements. This is 
+    particularly used along with the matplotlib visualisation 
+    options to define the colours of the curves.
+    Specifically, given a list l1, it repeats the elements of 
+    the list to create a new list with new_len elements.
+    :param l1: (list) Original list, it will be appended in the 
+                beginning of the final list.
+    :param new_len: (int, optional) Length of the new list.
+    :return: (list) the extended list.
+    """
+    # accepts a list with elements and populates by choosing some of those and repeating them.
+    ll = len(l1)
+    assert(ll > 0)
+    if ll > new_len: 
+        return l1
+    import random
+    random.seed(0)
+    l2 = list(l1)
+    for i in range(ll, new_len + 1):
+        np = random.randint(0, ll - 1)  # position to sample from
+        l2.append(l1[np])
+    return l2
+

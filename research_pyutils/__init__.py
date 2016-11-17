@@ -10,6 +10,6 @@ from .filenames_changes import (rename_files, change_suffix,
                                 strip_filenames)
 
 from .auxiliary import (execution_stats, compare_python_types,
-                        whoami)
+                        whoami, populate_visual_options)
 
 
