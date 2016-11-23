@@ -1,6 +1,9 @@
 from os.path import join, isdir, isfile
 import numpy as np
 import menpo.io as mio
+from menpofit.visualize import view_image_multiple_landmarks
+from menpo.image import Image
+import matplotlib.pyplot as plt
 
 
 def process_lns_path(process, shapes=None, p_in=None, p_out=None, overwrite=None):
@@ -110,3 +113,46 @@ def compute_overlap(pt0, pt1):
         overlap = inter_area / union_area
         
     return overlap
+
+
+def rasterize_all_lns(im, labels=None, colours='r'):
+    """
+    Visualisation related function. It accepts a menpo image and renders
+    all the landmarks that it contains in a new image (effectively
+    rasterises all the landmarks in the same plot).
+    :param im: menpo image.
+    :param labels: list or None (optional). If None, then the sorted landmarks
+        already attached in the image are used.
+    :param colours: list or str (optional). The colours that each landmark group
+        obtains in the visualisation. If it is a list, then each group i will be
+        aligned with the respective labels[i].
+    :return: A new image with all the landmark groups rasterised.
+    """
+    if labels is None:
+        labels = sorted(im.landmarks.group_labels)
+    if isinstance(colours, str):
+        colours = [colours] * len(labels)
+    assert len(colours) >= len(labels)
+
+    # visualise all the bounding boxes for the frame.
+    c1 = colours[:len(labels)]
+    f = plt.figure(frameon=False)
+    r = view_image_multiple_landmarks(im, labels,
+                                      subplots_enabled=False, line_colour=c1,
+                                      marker_face_colour=c1, line_width=5,
+                                      figure_id=f.number)
+
+    # get the image from plt (copied from
+    # https://github.com/menpo/menpo/blob/master/menpo/image/rasterize.py#L79)
+    f.tight_layout(pad=0)
+    # Get the pixels directly from the canvas buffer which is fast
+    c_buffer, shape = f.canvas.print_to_buffer()
+    # Turn buffer into numpy array and reshape to image
+    pixels_buffer = np.fromstring(c_buffer,
+                                  dtype=np.uint8).reshape(shape[::-1] + (-1,))
+    # Prevent matplotlib from rendering
+    plt.close(f)
+    # Ignore the Alpha channel
+    im_plt = Image.init_from_channels_at_back(pixels_buffer[..., :3])
+
+    return im_plt

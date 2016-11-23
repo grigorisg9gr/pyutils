@@ -4,13 +4,14 @@
 from sys import argv
 from os import listdir
 from shutil import move
+from os.path import sep
 from subprocess import check_output
 import re
 # functions from the same git repo.
-from path_related_functions import mkdir_p, sep
-
+from path_related import mkdir_p
 
 type_v = ['mp4', 'mpg', 'avi', 'ogg']
+
 
 def clip_to_frames(clip_name, path_video, path_fr_0):
     """
@@ -41,7 +42,7 @@ def main(path_base, video_f='mp4', frames='frames'):
     path_v_fr = mkdir_p(path_base + frames + sep)
     list_clips = sorted(listdir(path_video))
     try: 
-        from joblib import Parallel, delayed
+        from joblib import Parallel, delayed2
         Parallel(n_jobs=-1, verbose=4)(delayed(clip_to_frames)(clip_name, path_video, path_v_fr) for clip_name in list_clips);
     except ImportError:
         print('Sequential execution')
