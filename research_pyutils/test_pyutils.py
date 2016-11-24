@@ -218,7 +218,7 @@ class Test_path_related_functions(unittest.TestCase):
 
     def test_count_files_no_path(self):
         """
-        Confirm that when count_files (in file_counter.py) is called:
+        Confirm that when count_files is called:
          a) in the pyutils dir, it returns at least two files.
          b) in a non-existent path, it returns negative number of files,
         """
