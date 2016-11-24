@@ -115,7 +115,7 @@ def compute_overlap(pt0, pt1):
     return overlap
 
 
-def rasterize_all_lns(im, labels=None, colours='r'):
+def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=False):
     """
     Visualisation related function. It accepts a menpo image and renders
     all the landmarks that it contains in a new image (effectively
@@ -126,6 +126,12 @@ def rasterize_all_lns(im, labels=None, colours='r'):
     :param colours: list or str (optional). The colours that each landmark group
         obtains in the visualisation. If it is a list, then each group i will be
         aligned with the respective labels[i].
+    :param marker_sz: int (optional). The size of the marker for the landmark
+        rasterisation.
+    :param treat_as_bb: bool (optional). Indicates whether the groups should be
+        converted first to bounding boxes. If True, then they will be visualised
+        as a directed graph visualisation. If False, the default visualisation is
+        applied (as points).
     :return: A new image with all the landmark groups rasterised.
     """
     if labels is None:
@@ -134,13 +140,19 @@ def rasterize_all_lns(im, labels=None, colours='r'):
         colours = [colours] * len(labels)
     assert len(colours) >= len(labels)
 
+    if treat_as_bb:
+        # a copy is made to avoid distorting the landmark groups.
+        im = im.copy()
+        for lb in labels:
+            im.landmarks[lb] = im.landmarks[lb].lms.bounding_box()
+
     # visualise all the bounding boxes for the frame.
     c1 = colours[:len(labels)]
     f = plt.figure(frameon=False)
     r = view_image_multiple_landmarks(im, labels,
                                       subplots_enabled=False, line_colour=c1,
                                       marker_face_colour=c1, line_width=5,
-                                      figure_id=f.number)
+                                      marker_size=marker_sz, figure_id=f.number)
 
     # get the image from plt (copied from
     # https://github.com/menpo/menpo/blob/master/menpo/image/rasterize.py#L79)
