@@ -250,7 +250,12 @@ def count_files(path='.', ending='', directory=False, subdirs=False):
     if not subdirs:
         # in this case, we just care for the first
         # level, apply the fastest method.
-        cmd = 'ls -f {}*{} | wc -l'.format(path, ending)
+        if ending == '':
+            cmd = 'ls -f {} | wc -l'.format(path)
+        else:
+            # This is a workaround because ls -f [path]/* returns also
+            # the results of subfolders.
+            cmd = 'ls -f {}*{} | wc -l'.format(path, ending)
     else:
         add_arg = ''
         if directory:

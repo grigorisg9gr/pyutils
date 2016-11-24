@@ -154,8 +154,7 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
                                       marker_face_colour=c1, line_width=5,
                                       marker_size=marker_sz, figure_id=f.number)
 
-    # get the image from plt (copied from
-    # https://github.com/menpo/menpo/blob/master/menpo/image/rasterize.py#L79)
+    # get the image from plt
     f.tight_layout(pad=0)
     # Get the pixels directly from the canvas buffer which is fast
     c_buffer, shape = f.canvas.print_to_buffer()
