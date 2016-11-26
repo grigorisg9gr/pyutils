@@ -61,7 +61,8 @@ def remove_empty_paths(path, removeRoot=False, verbose=True):
     :param verbose:     (optional) Boolean, if True, prints info during execution.
     :return:
     """
-    # code similar to: http://www.jacobtomlinson.co.uk/2014/02/16/python-script-recursively-remove-empty-folders-directories/
+    # code inspired from:
+    # http://www.jacobtomlinson.co.uk/2014/02/16/python-script-recursively-remove-empty-folders-directories/
     if not isdir(path):
         if verbose:
             print('The path {} does not exist.'.format(path))
@@ -73,7 +74,7 @@ def remove_empty_paths(path, removeRoot=False, verbose=True):
         for f in file_list:
             new_path = join(path, f)
             if isdir(new_path):
-                remove_empty_paths(new_path, removeRoot=True)
+                remove_empty_paths(new_path, removeRoot=True, verbose=verbose)
 
     # if the (initial) folder is empty, delete it.
     file_list = os.listdir(path)

@@ -128,10 +128,12 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
         aligned with the respective labels[i].
     :param marker_sz: int (optional). The size of the marker for the landmark
         rasterisation.
-    :param treat_as_bb: bool (optional). Indicates whether the groups should be
-        converted first to bounding boxes. If True, then they will be visualised
-        as a directed graph visualisation. If False, the default visualisation is
-        applied (as points).
+    :param treat_as_bb: list of bool or bool (optional). Indicates whether each
+        should be converted first to bounding box. For every element that is 
+        True, then the respective group is visualised as a directed graph
+        visualisation. For every False, the default visualisation is
+        applied (as points). If simply a bool, the same decision is applied
+        for all the groups.
     :return: A new image with all the landmark groups rasterised.
     """
     if labels is None:
@@ -140,11 +142,15 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
         colours = [colours] * len(labels)
     assert len(colours) >= len(labels)
 
-    if treat_as_bb:
+    if treat_as_bb or isinstance(treat_as_bb, list):
         # a copy is made to avoid distorting the landmark groups.
         im = im.copy()
-        for lb in labels:
-            im.landmarks[lb] = im.landmarks[lb].lms.bounding_box()
+        # if a single boolean is provided, convert to a list.
+        if isinstance(treat_as_bb, bool):
+            treat_as_bb = [treat_as_bb] * len(labels)
+        for lb, as_bb in zip(labels, treat_as_bb):
+            if as_bb:
+                im.landmarks[lb] = im.landmarks[lb].lms.bounding_box()
 
     # visualise all the bounding boxes for the frame.
     c1 = colours[:len(labels)]
@@ -152,7 +158,8 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
     r = view_image_multiple_landmarks(im, labels,
                                       subplots_enabled=False, line_colour=c1,
                                       marker_face_colour=c1, line_width=5,
-                                      marker_size=marker_sz, figure_id=f.number)
+                                      marker_size=marker_sz, figure_id=f.number,
+                                      render_legend=False)
 
     # get the image from plt
     f.tight_layout(pad=0)
