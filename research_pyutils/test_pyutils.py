@@ -203,12 +203,29 @@ class Test_path_related_functions(unittest.TestCase):
         os.remove(p1 + '005.txt')
 
         # constrained start
-        copy_the_previous_if_missing(p1, init_fr='006.txt')
+        expected_list = ['006.txt', '007.txt', '008.txt', '009.txt']
+        print(sorted(listdir(p1)))
+        copy_the_previous_if_missing(p1, expected_list=expected_list)
         assert(not os.path.isfile(p1 + '005.txt'))
 
-        # constrained end
-        copy_the_previous_if_missing(p1, last_fr='004.txt')
+        # expected list with gaps
+        expected_list.remove(expected_list[2])
+        os.remove(p1 + '008.txt')
+        copy_the_previous_if_missing(p1, expected_list=expected_list)
         assert(not os.path.isfile(p1 + '005.txt'))
+        assert(not os.path.isfile(p1 + '008.txt'))
+
+        # missing the first few elements.
+        expected_list = sorted(os.listdir(p1))
+        os.remove(p1 + '001.txt')
+        os.remove(p1 + '002.txt')
+        copy_the_previous_if_missing(p1)
+        assert(not os.path.isfile(p1 + '001.txt'))
+
+        # fill the first few elements
+        copy_the_previous_if_missing(p1, expected_list=expected_list)
+        assert(os.path.isfile(p1 + '001.txt'))
+        assert(os.path.isfile(p1 + '002.txt'))
 
         # TODO: include tests for case of unsimilar names in the
         # same folder, e.g. 001.pts, 001.txt.

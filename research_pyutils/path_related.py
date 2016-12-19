@@ -2,12 +2,14 @@
 # available under the terms of the Apache License, Version 2.0
 
 import os
+from os import system, listdir
 from os.path import isdir, isfile, sep, join
 import shutil
 import errno
 from glob import glob
 from subprocess import check_output
-from subprocess import check_output
+from pathlib import Path
+
 
 # TO-DO: put progress bars in all the packages with time-consuming loops.
 
@@ -42,7 +44,7 @@ def is_path(path, msg=None, stop_execution=False):
     the path does not exist. If True, then a RuntimeError will be raised, the function will return False.
     :return:                Boolean value. True if the path exists, False otherwise.
     """
-    if not(isdir(path)):
+    if not (isdir(path)):
         if msg is None:
             msg = 'Not valid path ({})'.format(path)
         if stop_execution:
@@ -92,119 +94,97 @@ def copy_contents_of_folder(src, dest, suffix=''):
     :param suffix: (Optional, str) The suffix/extension of the files.
     :return:
     """
-    assert(isdir(src))
-    sepq = os.path.sep
-    os.system('cp -r {}{}*{} {}'.format(src, sepq, suffix, dest))
+    assert (isdir(src))
+    system('cp -r {}{}*{} {}'.format(src, sep, suffix, dest))
 
-
-def _get_stem(el):
-    # aux function.
-    return el[:el.rfind('.')]
 
 def _format_string_name_number(pad, name):
     return '{nam1:0{pad}d}'.format(pad=pad, nam1=name)
 
-def _check_or_initialise(el, l, idx, assertion=False):
-    """
-    Auxiliary function. It checks whether el is part of the list l,
-    otherwise it initialiases it to l[idx].
-    It returns the int of the stem name of the file.
-    :param el: (None or string) Part of the list l if not None.
-    :param l:  (list) List of elements.
-    :param idx: (int) Index in case el is None.
-    :param assertion: (Bool, optional) Raise assertion error if el
-           is not in list l.
-    :return:
-    """
-    assert(isinstance(l, list))
-    if el is None:
-        el = l[idx]
-    elif assertion:
-        assert(el in l)
-    return int(_get_stem(el))
 
-
-def copy_the_previous_if_missing(p, init_fr=None, last_fr=None, verbose=False):
+def copy_the_previous_if_missing(p, expected_list=None, suffix=None, verbose=False):
     """
-    Copies the previous file if it is missing. The result of this function
-    creates a sequential structure of files, starting from the first one till
-    the final one. Works in a folder with files.
-    It sequentially tries to access the files and if they are missing, it copies
-    the previous one.
+    Copies the previous file if it is missing. If the expected_list is provided, it
+    ensures that all the filenames in the expected list exist in the p path as well.
+    Use case: Fill the missing files, e.g. 1st order markov assumption.
     ASSUMPTIONS:
-      a) The naming should be only numbers, e.g. '000034.[suffix]',
-      b) The [suffix] of the first file (listdir) will be copied in case
-         of a missing file.
-
-    :param p:  (string) Base path for performing the copying/checking.
-    :param init_fr: (string, optional) Initial filename to start the
-           checking from. It should exist in the dir p.
-    :param last_fr: (string, optional) Final filename to end the checking.
-           As with the init_fr, it should exist in the dir p.
-    :param verbose: (Bool, optional) Whether to print info about which
-           frames are copied.
+        a) The naming should be only numbers, e.g. '000034.[suffix]',
+        b) The [suffix] of the first file (listdir) will be copied in case
+            no suffix is provided.
+    :param p:       (string) Base path for performing the copying/checking.
+    :param expected_list: (list, optional) The list of filenames to ensure that exist.
+            If it is not provided, then a sequential structure from the first till the
+            last element of the p dir is assumed.
+    :param suffix:  (string, optional) The suffix of the files to glob. If None is provided,
+            then the extension of the first file is used.
+    :param verbose: (bool, optional) Whether to print info for the copying.
     :return:
     """
-    from pathlib import Path
     from shutil import copy2
-    assert(isdir(p))
-    l = sorted(os.listdir(p))
-    # Gets the init_fr. If provided, it verifies that this is indeed included
-    # in the provided listdir in the path. If it None, then the init_fr is
-    # assumed to be the first filename in the listdir.
-    # If NOT provided, then no files before the l[0] are copied, e.g. if
-    # 03.p is the first file, then the 01.p or 02.p are not created.
-    init_fr = _check_or_initialise(init_fr, l, 0)
-    # Similarly for the last_fr.
-    last_fr = _check_or_initialise(last_fr, l, -1)
-    # get an expected list based on init, last filenames.
-    l_run = list(range(init_fr, last_fr + 1))
-    ll, lr = len(l), len(l_run)
-    assert(lr < 100000)  # ensure that it's not infinite.
-    if lr == ll or ll == 0:
-        return
-    # iterator over the 'real' files list (cnt_l). This might be
-    # different than the expected filenames' list, thus a different
-    # counter is required.
-    cnt_l = 0
-    suffix = Path(l[cnt_l]).suffix
-    # prune the 'real' list if required. That is, if the first element is
-    # not the 'real' first element in the path, we should prune the list.
-    c1 = _format_string_name_number(len(l[0]) - len(suffix), init_fr)
-    idx = l.index(c1 + suffix)
-    if idx > 0:
-        l = l[idx :]
 
-    # iterate over the expected elements
-    for cn, el in enumerate(l_run):
-        # get the actual name of the l files (i.e. dump the suffix).
-        nam = _get_stem(l[cnt_l])
-        if el == int(nam):
-            cnt_l += 1
+    if suffix is None:
+        init_l = sorted(listdir(p))
+        suffix = Path(init_l[0]).suffix
+        if verbose:
+            m1 = ('The suffix {} chosen, only the files with this'
+                  'suffix will be affected.')
+            print(m1.format(suffix))
+    # update the init_l list with a glob
+    init_l = sorted(glob(p + '*' + suffix))
+    init_l = [Path(el).stem for el in init_l]
+
+    if expected_list is None:
+        # as a workaround, we accept the first and the last element
+        # we find in the original list and then we just form the
+        # expected list with those.
+        end_el = int(init_l[-1])
+        start_el = int(init_l[0])
+        # get the number of digits from the length of the start_el.
+        pad = len(init_l[0])
+        # format the expected list now.
+        expected_list = [_format_string_name_number(pad, el)
+                         for el in range(start_el, end_el)]
+    else:
+        # ensure that there is no extension in the list provided.
+        try:
+            int(expected_list[0])
+        except ValueError:
+            # in this case, get rid of the extension.
+            expected_list = [Path(el).stem for el in expected_list]
+    expected_list = sorted(expected_list)
+
+    # iterator counting the parsed elements of the init list.
+    cnt_init = 0
+    # ready to iterate over the expected list and if the respective
+    # element of the init_l is missing, copy the previous (or the next
+    # if the initia are missing).
+    for el_exp in expected_list:
+        if el_exp == init_l[cnt_init]:
+            # we have a match, no need to copy anything.
+            cnt_init += 1
+            continue
+        diff = int(el_exp) - int(init_l[cnt_init])
+        if diff > 0:
+            # we need to fast forward the parsing of the second list
+            while diff > 0 and cnt_init < len(init_l):
+                cnt_init += 1
+                diff = int(el_exp) - int(init_l[cnt_init])
         else:
-            # missing file, copy previous
-            if cnt_l > 0:
-                prev = el - 1
+            # We actually need to copy the previous.
+            target = el_exp
+            if cnt_init == 0:
+                # corner case where the first is missing.
+                source = init_l[cnt_init]
             else:
-                prev = int(nam)
-            # format the names of previous and new, based on the correct padding.
-            name_pr = _format_string_name_number(len(nam), prev)
-            name = _format_string_name_number(len(nam), el)
+                source = init_l[cnt_init - 1]
             # format the filenames paths for the new (i.e. to be copied) and
             # old (i.e. to copy)files.
-            p_n = p + name + suffix
-            p_o = p + name_pr + suffix
-            assert(isfile(p_o) and not isfile(p_n))
+            p_src = p + source + suffix
+            p_trg = p + target + suffix
+            assert (isfile(p_src) and not isfile(p_trg))
             if verbose:
-                print('Copying the file {} to the {}.'.format(p_o, p_n))
-            copy2(p_o, p_n)
-
-        if cnt_l == ll and cnt_l > 0:
-            # in that case, we reached the end of the 'real' files list, however
-            # the 'destination' is not achieved in the expected filenames.
-            # Hence, one new dummy element is appended, so that it
-            # copies the rest of the files.
-            l.append(_format_string_name_number(len(nam), 100000) + suffix)
+                print('Copying the file {} to the {}.'.format(p_src, p_trg))
+            copy2(p_src, p_trg)
 
 
 def unzip_all_dir(p, extension='zip'):
@@ -222,10 +202,10 @@ def unzip_all_dir(p, extension='zip'):
     all_zips = glob(join(p, '*.{}'.format(extension)))
     for zi in all_zips:
         if extension == 'zip':
-           compr_ref = ZipFile(zi, 'r')
+            compr_ref = ZipFile(zi, 'r')
         else:
-           # right now only these two formats supported.
-           compr_ref = tarfile.open(zi, 'r')
+            # right now only these two formats supported.
+            compr_ref = tarfile.open(zi, 'r')
         compr_ref.extractall(p)
         compr_ref.close()
 
