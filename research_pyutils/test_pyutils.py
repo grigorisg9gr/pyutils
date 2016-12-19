@@ -204,7 +204,6 @@ class Test_path_related_functions(unittest.TestCase):
 
         # constrained start
         expected_list = ['006.txt', '007.txt', '008.txt', '009.txt']
-        print(sorted(listdir(p1)))
         copy_the_previous_if_missing(p1, expected_list=expected_list)
         assert(not os.path.isfile(p1 + '005.txt'))
 
@@ -226,6 +225,12 @@ class Test_path_related_functions(unittest.TestCase):
         copy_the_previous_if_missing(p1, expected_list=expected_list)
         assert(os.path.isfile(p1 + '001.txt'))
         assert(os.path.isfile(p1 + '002.txt'))
+
+        # increase the expected ones in the end of the list.
+        expected_list.append('012.txt')
+        copy_the_previous_if_missing(p1, expected_list=expected_list)
+        print(sorted(listdir(p1)))
+        assert(os.path.isfile(p1 + '012.txt'))
 
         # TODO: include tests for case of unsimilar names in the
         # same folder, e.g. 001.pts, 001.txt.

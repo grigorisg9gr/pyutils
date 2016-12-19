@@ -131,6 +131,7 @@ def copy_the_previous_if_missing(p, expected_list=None, suffix=None, verbose=Fal
             print(m1.format(suffix))
     # update the init_l list with a glob
     init_l = sorted(glob(p + '*' + suffix))
+    assert len(init_l) >= 1
     init_l = [Path(el).stem for el in init_l]
 
     if expected_list is None:
@@ -159,14 +160,21 @@ def copy_the_previous_if_missing(p, expected_list=None, suffix=None, verbose=Fal
     # element of the init_l is missing, copy the previous (or the next
     # if the initia are missing).
     for el_exp in expected_list:
+        if cnt_init >= len(init_l):
+            # we reached the end of the list, but there are more
+            # elements that should be copied.
+            # Trick, append a new element to the end, which is greater
+            # than al lin the expected list, ensure the rest are copied.
+            el1 = int(expected_list[-1]) + 5
+            init_l.append(_format_string_name_number(len(init_l[0]), el1))
         if el_exp == init_l[cnt_init]:
             # we have a match, no need to copy anything.
             cnt_init += 1
             continue
         diff = int(el_exp) - int(init_l[cnt_init])
-        if diff > 0:
+        if diff > 0 and cnt_init < len(init_l) - 1:
             # we need to fast forward the parsing of the second list
-            while diff > 0 and cnt_init < len(init_l):
+            while diff > 0 and cnt_init < len(init_l) - 1:
                 cnt_init += 1
                 diff = int(el_exp) - int(init_l[cnt_init])
         else:
