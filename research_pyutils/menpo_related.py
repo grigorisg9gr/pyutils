@@ -119,7 +119,7 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
     """
     Visualisation related function. It accepts a menpo image and renders
     all the landmarks that it contains in a new image (effectively
-    rasterises all the landmarks in the same plot).
+    rasterises all the landmarks in the **same** plot).
     :param im: menpo image.
     :param labels: list or None (optional). If None, then the sorted landmarks
         already attached in the image are used.
@@ -134,7 +134,8 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
         visualisation. For every False, the default visualisation is
         applied (as points). If simply a bool, the same decision is applied
         for all the groups.
-    :return: A new image with all the landmark groups rasterised.
+    :return: A new image with all the landmark groups rasterised in a single
+        plot/image.
     """
     if labels is None:
         labels = sorted(im.landmarks.group_labels)
