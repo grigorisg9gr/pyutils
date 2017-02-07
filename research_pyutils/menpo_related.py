@@ -99,6 +99,10 @@ def flip_images(ims, rotate=False):
         for gr in im1.landmarks.group_labels:
             if im1.landmarks[gr].lms.n_points == 68:
                 im1.landmarks[gr] = mirr68(im1.landmarks[gr])
+            else:
+                m1 = ('The landmark group {} not recognised, '
+                      'please correct manually.')
+                print(m1.format(gr1))
         if rotate:
             rr = np.random.randint(-20, 20)
             im2 = im1.rotate_ccw_about_centre(rr)

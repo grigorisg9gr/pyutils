@@ -164,7 +164,7 @@ class Test_path_related_functions(unittest.TestCase):
         sys.stdout = out
         remove_empty_paths(p2, verbose=True)
         output = out.getvalue().strip()
-        print(output)
+        # print(output)
         assert('not exist' in output)
         sys.stdout = saved_stdout
 
@@ -229,7 +229,7 @@ class Test_path_related_functions(unittest.TestCase):
         # increase the expected ones in the end of the list.
         expected_list.append('012.txt')
         copy_the_previous_if_missing(p1, expected_list=expected_list)
-        print(sorted(listdir(p1)))
+        # print(sorted(listdir(p1)))
         assert(os.path.isfile(p1 + '012.txt'))
 
         # TODO: include tests for case of unsimilar names in the
@@ -478,6 +478,8 @@ class Test_menpo_related_functions(unittest.TestCase):
         ims2 = flip_images(ims)
         lms = ims2[0].landmarks[gr].lms
         assert np.allclose(lms.points, im.landmarks[gr].lms.points)
+        # TODO: ideally here more tests that check random points, e.g. the
+        # transformation of point 0 in the flipped. Also, more cases.
 
 if __name__ == '__main__':
     import unittest
