@@ -81,6 +81,33 @@ def resize_all_images(images, f=None):
     return images_resized
 
 
+def flip_images(ims, rotate=False):
+    """
+    Horizontally flips the image(s). For the landmarks with 68 markup it applies
+    the menpo convenience function for semantically correcting the flipped ones.
+    :param ims: (image or list of images) Menpo images to flip.
+    :param rotate: (bool, optional) Add an optional rotation to the image(s).
+    :return: The flipped images.
+    """
+    from menpo.landmark import face_ibug_68_mirrored_to_face_ibug_68 as mirr68
+    if not isinstance(ims, list):
+        # this is the case of a single image.
+        ims = [ims]
+    ims_flipped = []
+    for im in ims:
+        im1 = im.mirror()
+        for gr in im1.landmarks.group_labels:
+            if im1.landmarks[gr].lms.n_points == 68:
+                im1.landmarks[gr] = mirr68(im1.landmarks[gr])
+        if rotate:
+            rr = np.random.randint(-20, 20)
+            im2 = im1.rotate_ccw_about_centre(rr)
+            ims_flipped.append(im2)
+        else:
+            ims_flipped.append(im1)
+    return ims_flipped
+
+
 # aux function to transform the bb in a [y_min, x_min, y_max, x_max format].
 # pts can be of a bounding box/landmark points format.
 bb_format_minmax = lambda pts : [np.min(pts[:, 0]), np.min(pts[:, 1]), 
