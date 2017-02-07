@@ -408,7 +408,7 @@ class Test_menpo_related_functions(unittest.TestCase):
             import menpo.io as mio
         except ImportError:
             m1 = ('Menpo cannot be imported, so the related tests\n'
-                  'nught fail.')
+                  'might fail.')
             print(m1)
 
     def test_resize_all_images(self):
@@ -456,7 +456,28 @@ class Test_menpo_related_functions(unittest.TestCase):
         ov3 = compute_overlap(bb0.points, bb1)
         assert np.allclose(ov3, 0.)
 
+    def test_flip_images(self):
+        self.init_grigoris()
+        import menpo.io as mio
+        from menpo_related import flip_images
 
+        im = mio.import_builtin_asset.breakingbad_jpg()
+        ims = flip_images(im)
+        assert len(ims) == 1
+        # get the pure mirror.
+        mirror = im.mirror()
+        assert np.allclose(ims[0].pixels, mirror.pixels)
+        # ensure that the landmarks are 'semantically correct':
+        # a) not the same as the original.
+        gr = im.landmarks.group_labels[0]
+        lms = ims[0].landmarks[gr].lms
+        assert not np.allclose(lms.points, im.landmarks[gr].lms.points)
+        # b) not close with the pure mirror.
+        assert not np.allclose(lms.points, mirror.landmarks[gr].lms.points)
+        # c) by reversing the flip, we should end up in the same.
+        ims2 = flip_images(ims)
+        lms = ims2[0].landmarks[gr].lms
+        assert np.allclose(lms.points, im.landmarks[gr].lms.points)
 
 if __name__ == '__main__':
     import unittest
