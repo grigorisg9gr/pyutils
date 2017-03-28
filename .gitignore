@@ -2,6 +2,7 @@
 *.pyc
 .idea/*
 *.egg-info/*
+*tmp*.py
 
 # personal testout files.
 personal.py

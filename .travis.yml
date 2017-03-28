@@ -8,7 +8,8 @@ python:
 # install dependencies
 install: 
     - pip install .
+    - pip install pathlib
 
 # run tests
 script:
-    - python research_pyutils/test_pyutils.py
+    - nosetests -v
