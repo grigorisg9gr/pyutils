@@ -47,6 +47,9 @@ def test_remove_empty_paths_non_existent_path():
 
 
 def test_remove_empty_paths_basic_tests():
+    """
+    Fundamental tests for the remove_empty_paths().
+    """
     from research_pyutils import mkdir_p, remove_empty_paths
     p1 = mkdir_p(join(test_p, 'tmp', ''))
 
