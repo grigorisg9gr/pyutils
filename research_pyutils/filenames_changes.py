@@ -55,22 +55,31 @@ def change_suffix(file_path, ext, initial_suffix='', new_suffix=''):
     end_p = len(end1)
     list2rename = sorted(glob(file_path + '*' + end1))
     for cnt, elem_p in enumerate(list2rename):
-        elem_n = elem_p[elem_p.rfind('/') + 1:]
+        elem_n = elem_p[elem_p.rfind(sep) + 1:]
         till_pos = -end_p if elem_n.rfind('_') < 0 else elem_n.rfind('_')
-        rename(elem_p, file_path + elem_n[:till_pos] + new_suffix + ext)
+        new_name = file_path + elem_n[:till_pos] + new_suffix + ext
+        if isfile(new_name):
+            # TODO: this about this case, e.g. if 01.txt and 01_1.txt both exist.
+            m = 'The file already exists, not overwritting it.'
+            print(m.format(new_name))
+            continue
+        rename(elem_p, new_name)
     return 1
 
 
-def strip_filenames(path, ext=''):
+def strip_filenames(path, ext='', allowed_chars=None):
     """
     Strips the filenames from whitespaces and other 'problematic' chars.
     In other words converts the filenames to alpharethmetic chars.
     :param path:    (String) Base path for the filenames.
     :param ext:     (String, optional) If provided, the glob will rename only these files.
+    :param allowed_chars:  (String, optional) If provided, it includes the
+            chars to be allowed in the re function compile().
     :return:
     """
-
-    pattern = re.compile('[^a-zA-Z0-9.]+')
+    if allowed_chars is None:
+        allowed_chars = '[^a-zA-Z0-9.]+'
+    pattern = re.compile(allowed_chars)
     for cl in sorted(glob(path + '*' + ext)):
         # get only the filename
         cl1 = cl[cl.rfind(sep) :]

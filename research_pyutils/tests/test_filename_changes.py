@@ -25,9 +25,9 @@ def test_rename_files_basic():
     mkdir_p(test_p)
     aux_require_file_existence(filenames, test_p)
 
-    # non-existent path case
+    # # # non-existent path
     assert rename_files(test_p + rand_str, 'txt') == -1
-    # non-existent extension
+    # # # non-existent extension
     assert rename_files(test_p + rand_str, 'txt_' + rand_str) == -1
 
     # simple rename case
@@ -45,7 +45,7 @@ def test_rename_files_basic():
     rmtree(test_p_parent)
 
 
-def test_rename_files_more():
+def test_rename_files_additional():
     """
     Additional tests for rename_files() for optional arguments.
     """
@@ -84,4 +84,69 @@ def test_rename_files_more():
     rmtree(test_p_parent)
 
 
+def test_change_suffix():
+    from research_pyutils import change_suffix, mkdir_p
+    mkdir_p(test_p)
+    aux_require_file_existence(filenames, test_p)
+
+    # # # non-existent path
+    assert change_suffix(test_p + rand_str, 'txt') == -1
+    # # # non-existent extension
+    assert change_suffix(test_p + rand_str, 'txt_' + rand_str) == -1
+
+    # # # simple rename case
+    res_bef2 = glob(test_p + '*.txt2')
+    assert change_suffix(test_p, '.txt', new_suffix='@9') == 1
+    assert len(glob(test_p + '_*.txt')) == 0
+    # meanwhile, the rest should be untouched,
+    res2 = glob(test_p + '*.txt2')
+    assert res2 == res_bef2 and len(res2) > 0
+
+    rmtree(test_p_parent)
+
+
+def test_change_suffix_additional():
+    """
+    Additional tests for change_suffix() for optional arguments.
+    """
+    from research_pyutils import change_suffix, mkdir_p
+    mkdir_p(test_p)
+    filenames1 = filenames.copy()
+    # due to the current ambigious status of having [name_x].[ext] and
+    # [name_x]_[*].[ext], remove those files, otherwise the test will fail.
+    filenames1.remove('00001_1.txt')
+    filenames1.remove('00002.txt')
+    aux_require_file_existence(filenames1, test_p)
+
+    res_bef = glob(test_p + '*.txt')
+    res_bef2 = glob(test_p + '*.txt2')
+    assert change_suffix(test_p, '.txt', new_suffix='@9') == 1
+    # the renamed files are equal with the original.
+    assert len(glob(test_p + '*@9.txt')) == len(res_bef)
+    assert len(glob(test_p + '_*.txt')) == 0
+    # meanwhile, the rest should be untouched,
+    res2 = glob(test_p + '*.txt2')
+    assert res2 == res_bef2 and len(res2) > 0
+
+    rmtree(test_p_parent)
+
+
+def test_strip_filenames():
+    from research_pyutils import strip_filenames, mkdir_p
+    mkdir_p(test_p)
+    filenames1 = ['001@#$%*(&* 00.txt', '003.88.999. 0.txt', '009  ASD.tt', 'tmp.345353']
+    stripped = ['00100.txt', '003.88.999.0.txt', '009ASD.tt', 'tmp.345353']
+    aux_require_file_existence(filenames1, test_p)
+
+    # # # convert with an extension
+    strip_filenames(test_p, ext='.txt')
+    assert isfile(test_p + stripped[0])
+    assert isfile(test_p + filenames1[-1])
+
+    # # # convert all
+    strip_filenames(test_p)
+    for file1 in stripped:
+        assert isfile(test_p + file1)
+
+    rmtree(test_p_parent)
 
