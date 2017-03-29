@@ -1,4 +1,4 @@
-from os.path import isdir, dirname, realpath, isfile, join
+from os.path import isdir, isfile, join
 from os import listdir, remove
 from shutil import rmtree
 import sys
@@ -8,26 +8,10 @@ try:
 except ImportError:
     from io import StringIO
 
+from tests_base import (files_path, rand_str, mkdir_msg, test_p,
+                        test_p_parent, random_string_gen,
+                        aux_require_file_existence)
 
-def random_string_gen(range1=12):
-    import string
-    import random
-    return ''.join(random.choice(string.ascii_uppercase) for i in range(range1))
-
-# # setup variables and functions
-rand_str = random_string_gen()
-files_path = join(dirname(realpath(__file__)), '')
-list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.txt',
-              '00004.txt', '00002.pt', '00004.pt']
-mkdir_msg = 'Test of {} is postponed, since the random path exists.'
-# format a set-up path (attention, the parent path(s) of this might be hardcoded).
-test_p_parent = join(files_path, rand_str, '')
-if isdir(test_p_parent):
-    print(mkdir_msg.format('tests_general_testing_path'))
-else:
-    rand_str = random_string_gen(range1=22)
-    test_p_parent = join(files_path, rand_str, '')
-test_p = join(test_p_parent, 'testing', 'files', '')
 
 # # # Tests
 def test_mkdir():
@@ -83,16 +67,6 @@ def test_remove_empty_paths_basic_tests():
     assert isdir(p1)
     # remove the temp path and files
     rmtree(test_p_parent)
-
-
-def aux_require_file_existence(filenames, path):
-    # Aux function: creates iteratively the files requested in the path.
-    if not isdir(path):
-        assert isdir(path)  # # temp for debugging.
-        return
-    for file1 in filenames:
-        # http://stackoverflow.com/a/12654798/1716869
-        open(path + file1, 'a').close()
 
 
 def test_copy_the_previous_if_missing():
@@ -168,7 +142,10 @@ def test_count_files_args():
 
     # no file returned for non-existent extension.
     rand_ext = '.ewrew.rewrew.dfsfds.5056456.k65k6456' + random_string_gen().lower()
+    # saved_stdout = sys.stdout
+    # out = StringIO()
+    # sys.stdout = out
     assert count_files(files_path, ending=rand_ext) == 0
-
+    # sys.stdout = saved_stdout
 
 
