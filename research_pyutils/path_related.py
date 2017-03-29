@@ -236,20 +236,24 @@ def count_files(path='.', ending='', directory=False, subdirs=False):
     :return: (int) The number of files.
     """
     assert isdir(path), 'The initial path does not exist.'
+    # subtr is for avoiding counting the '.' and '..' paths.
+    subtr = 0
     if not subdirs:
         # in this case, we just care for the first
         # level, apply the fastest method.
         if ending == '':
             cmd = 'ls -f {} | wc -l'.format(path)
+            subtr = 2
         else:
             # This is a workaround because ls -f [path]/* returns also
             # the results of subfolders.
             cmd = 'ls -f {}*{} | wc -l'.format(path, ending)
     else:
+        subtr = 1 if len(ending) == 0 else 0
         add_arg = ''
         if directory:
             add_arg = ' -type d '
         cmd = 'find {}{} -name "*{}" -print | wc -l'.format(path, add_arg, ending)
     nr_files = check_output(cmd, shell=True)
     # get rid of the \n in the end and return.
-    return int(nr_files[:-1])
+    return int(nr_files[:-1]) - subtr
