@@ -111,7 +111,7 @@ def test_change_suffix_additional():
     """
     from research_pyutils import change_suffix, mkdir_p
     mkdir_p(test_p)
-    filenames1 = filenames.copy()
+    filenames1 = list(filenames)
     # due to the current ambigious status of having [name_x].[ext] and
     # [name_x]_[*].[ext], remove those files, otherwise the test will fail.
     filenames1.remove('00001_1.txt')

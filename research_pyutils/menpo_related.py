@@ -204,5 +204,14 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
     plt.close(f)
     # Ignore the Alpha channel
     im_plt = Image.init_from_channels_at_back(pixels_buffer[..., :3])
+    # ensure that they have the same dtype as the original pixels.
+    dtype = im.pixels.dtype
+    if dtype != np.uint8:
+        if dtype == np.float32 or dtype == np.float64:
+            im_plt.pixels = im_plt.pixels.astype(dtype)
+            im_plt.pixels = im_plt.pixels / 255.0
+        else:
+            m1 = 'Not recognised type of original dtype ({}).'
+            print(m1.format(dtype))
 
     return im_plt
