@@ -2,6 +2,8 @@ pyutils
 =======
 
 A collection of useful Python tools for my research.
+[travis]: https://travis-ci.org/grigorisg9gr/pyutils
+[license]: https://github.com/grigorisg9gr/pyutils/blob/master/LICENSE
 
 #### **Files**
 Specifically, the files are classified as following:
