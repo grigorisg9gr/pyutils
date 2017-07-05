@@ -1,3 +1,5 @@
+import matplotlib as mpl
+mpl.use('Agg')
 from os.path import join, isdir, isfile
 import numpy as np
 import menpo.io as mio

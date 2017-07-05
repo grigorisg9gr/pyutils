@@ -2,6 +2,7 @@ pyutils
 =======
 
 A collection of useful Python tools for my research.
+
 [![Linux build status of master branch](https://img.shields.io/travis/grigorisg9gr/pyutils/master.svg?style=flat-square&label=Linux%3A%20build)][travis]
 [![BSD License](https://img.shields.io/badge/License-BSD-green.svg)][license]
 
