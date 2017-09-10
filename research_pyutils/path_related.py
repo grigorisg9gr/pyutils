@@ -2,7 +2,7 @@
 # available under the terms of the Apache License, Version 2.0
 
 import os
-from os import system, listdir
+from os import system, listdir, walk
 from os.path import isdir, isfile, sep, join
 import shutil
 import errno
