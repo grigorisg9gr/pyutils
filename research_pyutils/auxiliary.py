@@ -6,6 +6,7 @@ import time
 import socket
 
 
+
 def whoami():
     """
     Name of a function returned as a string.
@@ -100,7 +101,8 @@ def compare_python_types(elem1, elem2, msg='', per_elem_numpy=False):
 
 def execution_stats(return_vars=True, verbose=True):
     """
-    Prints some statistics, e.g. name of the machine, time of execution.
+    Prints some statistics, e.g. name of the machine, time of execution, 
+    memory of the machine (in GB).
     :param return_vars: (bool, optional) If True, return the time and machine
            name to the calling function/script.
     :param verbose:  (bool, optional) If True, print time, machine name.
@@ -108,11 +110,27 @@ def execution_stats(return_vars=True, verbose=True):
     """
     pc = socket.gethostname()
     time1 = time.strftime("%d/%m/%Y, %H:%M:%S")
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        m1 = 'The available memory in the machine (in GB) is: {}.'
+        mem_avail = np.round(mem.available / 1024 ** 3)
+    except ImportError:
+        # It is used only by execution_stats().
+        pass
     if verbose:
         print(pc)
         print(time1)
+        try:
+            print(m1.format(mem_avail))
+        except:
+            pass
     if return_vars:
-        return time1, pc
+        try:
+            return time1, pc, mem_avail
+        except:
+            # when the psutil fails.
+            return time1, pc
 
 
 def populate_visual_options(l1, new_len=40):
