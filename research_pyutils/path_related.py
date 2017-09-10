@@ -3,7 +3,7 @@
 
 import os
 from os import system, listdir, walk
-from os.path import isdir, isfile, sep, join
+from os.path import isdir, isfile, sep, join, getmtime
 import shutil
 import errno
 from glob import glob
@@ -257,3 +257,23 @@ def count_files(path='.', ending='', directory=False, subdirs=False):
     nr_files = check_output(cmd, shell=True)
     # get rid of the \n in the end and return.
     return int(nr_files[:-1]) - subtr
+
+
+def folders_last_modification(path, return_vars=True, verbose=True):
+    """
+    Iteratively computes the last modification of the files/subfolders
+    in the path.
+    :param path: (string) The path to check.
+    :param return_vars: (bool, optional) If True, return the last modification.
+                        This is returned in a datetime format.
+    :param verbose:  (bool, optional) If True, print the last modification time.
+    :return:
+    """
+    last_mod = max(getmtime(root) for root,_,_ in walk(path))
+    if verbose:
+        import time
+        print(time.ctime(last_mod))
+    if return_vars:
+        from datetime import datetime
+        return datetime.fromtimestamp(last_mod)
+

@@ -152,3 +152,12 @@ def test_count_files_args():
     # sys.stdout = saved_stdout
 
 
+def test_folders_last_modification():
+    from research_pyutils import folders_last_modification, mkdir_p
+    from datetime import datetime
+    mkdir_p(test_p)
+    
+    last_mod = folders_last_modification(test_p, return_vars=True)
+    delta = datetime.now() - last_mod
+    assert delta.total_seconds() < 10, delta.total_seconds()
+
