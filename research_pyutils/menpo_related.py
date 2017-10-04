@@ -217,3 +217,32 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
             print(m1.format(dtype))
 
     return im_plt
+
+
+def check_if_greyscale_values(im, n_sample_points=30, thresh=0.001):
+    """
+    Check whether a 3-channel image is indeed grayscale.
+    Iterates over uniformely sampled points and checks whether the
+    values over the channels are the same. The more points are checked the
+    better the probability that it is not 'just' a proportion of the image
+    black/white.
+    :param im:      (menpo image) Image to check.
+    :param n_sample_points:  (int) Number of points to check in the image.
+    :param thresh:  (float) The threshold for similarity.
+    :return: True, if it is indeed greyscale, False otherwise.
+    """
+    cond = True
+    if im.n_channels == 1:
+        return True
+    for _ in range(n_sample_points):
+        # sample random values for row, column check.
+        r = np.random.randint(0, im.shape[0])
+        c = np.random.randint(0, im.shape[1])
+        # # check whether they are (approximately) same
+        cond = (np.abs(im.pixels[0, r, c] - im.pixels[1, r, c]) < thresh and
+                np.abs(im.pixels[0, r, c] - im.pixels[2, r, c]) < thresh)
+        if not cond:
+            # Then an element of non grayscale value is found.
+            break
+    # If the loop is interrupted it has the value wrong.
+    return cond
