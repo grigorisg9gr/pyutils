@@ -1,11 +1,12 @@
 import matplotlib as mpl
 mpl.use('Agg')
 from os.path import join, isdir, isfile
+from functools import partial
 import numpy as np
+import matplotlib.pyplot as plt
 import menpo.io as mio
 from menpofit.visualize import view_image_multiple_landmarks
 from menpo.image import Image
-import matplotlib.pyplot as plt
 
 
 def process_lns_path(process, shapes=None, p_in=None, p_out=None, overwrite=None):
@@ -116,12 +117,12 @@ def flip_images(ims, rotate=False):
 
 # aux function to transform the bb in a [y_min, x_min, y_max, x_max format].
 # pts can be of a bounding box/landmark points format.
-bb_format_minmax = lambda pts : [np.min(pts[:, 0]), np.min(pts[:, 1]), 
-                                 np.max(pts[:, 0]), np.max(pts[:, 1])]
+bb_format_minmax = lambda pts: [np.min(pts[:, 0]), np.min(pts[:, 1]),
+                                np.max(pts[:, 0]), np.max(pts[:, 1])]
 
 # aux function to compute the area covered by a bounding box.
 # Expects a bounding box in a format of [y_min, x_min, y_max, x_max].
-bb_area = lambda bb : (bb[3] - bb[1] + 1) * (bb[2] - bb[0] + 1)
+bb_area = lambda bb: (bb[3] - bb[1] + 1) * (bb[2] - bb[0] + 1)
 
 
 def compute_overlap(pt0, pt1):
@@ -146,6 +147,49 @@ def compute_overlap(pt0, pt1):
         overlap = inter_area / union_area
         
     return overlap
+
+
+def my_2d_rasterizer(im, fn=None, group=None):
+    """
+    Visualisation related function. It accepts a menpo image and renders
+    a **single** pair of landmarks in a new image.
+    The fn offers the chance to apply a custom function to the image.
+    ASSUMPTION: There is no check for the case of no landmarks in the image.
+    :param im: menpo image.
+    :param fn: (optional) If None, then the default .view_landmarks() is
+        used for visualisation, otherwise the provided function.
+    :param group: (optional) Used in case fn is None.
+    :return: menpo rasterised image.
+    """
+    f = plt.figure(frameon=False)
+    if fn is None:
+        if group is None:
+            # in this case, assume that the first group of landmarks should suffice.
+            group = im.landmarks.group_labels[0]
+        r = im.view_landmarks(group=group)
+    else:
+        fn(im)
+    # get the image from plt
+    f.tight_layout(pad=0)
+    # Get the pixels directly from the canvas buffer which is fast
+    c_buffer, shape = f.canvas.print_to_buffer()
+    # Turn buffer into numpy array and reshape to image
+    pixels_buffer = np.fromstring(c_buffer,
+                                  dtype=np.uint8).reshape(shape[::-1] + (-1,))
+    # Prevent matplotlib from rendering
+    plt.close(f)
+    # Ignore the Alpha channel
+    im_plt = Image.init_from_channels_at_back(pixels_buffer[..., :3])
+    # ensure that they have the same dtype as the original pixels.
+    dtype = im.pixels.dtype
+    if dtype != np.uint8:
+        if dtype == np.float32 or dtype == np.float64:
+            im_plt.pixels = im_plt.pixels.astype(dtype)
+            im_plt.pixels = im_plt.pixels / 255.0
+        else:
+            m1 = 'Not recognised type of original dtype ({}).'
+            print(m1.format(dtype))
+    return im_plt
 
 
 def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=False):
@@ -190,33 +234,12 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
     c1 = colours[:len(labels)]
     f = plt.figure(frameon=False)
     r = view_image_multiple_landmarks(im, labels,
-                                      subplots_enabled=False, line_colour=c1,
-                                      marker_face_colour=c1, line_width=5,
-                                      marker_size=marker_sz, figure_id=f.number,
-                                      render_legend=False)
-
-    # get the image from plt
-    f.tight_layout(pad=0)
-    # Get the pixels directly from the canvas buffer which is fast
-    c_buffer, shape = f.canvas.print_to_buffer()
-    # Turn buffer into numpy array and reshape to image
-    pixels_buffer = np.fromstring(c_buffer,
-                                  dtype=np.uint8).reshape(shape[::-1] + (-1,))
-    # Prevent matplotlib from rendering
-    plt.close(f)
-    # Ignore the Alpha channel
-    im_plt = Image.init_from_channels_at_back(pixels_buffer[..., :3])
-    # ensure that they have the same dtype as the original pixels.
-    dtype = im.pixels.dtype
-    if dtype != np.uint8:
-        if dtype == np.float32 or dtype == np.float64:
-            im_plt.pixels = im_plt.pixels.astype(dtype)
-            im_plt.pixels = im_plt.pixels / 255.0
-        else:
-            m1 = 'Not recognised type of original dtype ({}).'
-            print(m1.format(dtype))
-
-    return im_plt
+                                      )
+    vis_fn = partial(view_image_multiple_landmarks, groups=labels, subplots_enabled=False,
+                     line_colour=c1, marker_face_colour=c1, line_width=5,
+                     marker_size=marker_sz, figure_id=f.number,
+                     render_legend=False)
+    return my_2d_rasterizer(im, fn=vis_fn)
 
 
 def check_if_greyscale_values(im, n_sample_points=30, thresh=0.001):
