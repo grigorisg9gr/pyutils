@@ -149,7 +149,7 @@ def compute_overlap(pt0, pt1):
     return overlap
 
 
-def my_2d_rasterizer(im, fn=None, group=None):
+def my_2d_rasterizer(im, fn=None, group=None, f=None):
     """
     Visualisation related function. It accepts a menpo image and renders
     a **single** pair of landmarks in a new image.
@@ -159,10 +159,11 @@ def my_2d_rasterizer(im, fn=None, group=None):
     :param fn: (optional) If None, then the default .view_landmarks() is
         used for visualisation, otherwise the provided function.
     :param group: (optional) Used in case fn is None.
+    :param f: (optional) Matplotlib figure to use. Leave None, unless you know how to modify.
     :return: menpo rasterised image.
     """
-    f = plt.figure(frameon=False)
     if fn is None:
+        f = plt.figure(frameon=False)
         if group is None:
             # in this case, assume that the first group of landmarks should suffice.
             group = im.landmarks.group_labels[0]
@@ -239,7 +240,7 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
                      line_colour=c1, marker_face_colour=c1, line_width=5,
                      marker_size=marker_sz, figure_id=f.number,
                      render_legend=False)
-    return my_2d_rasterizer(im, fn=vis_fn)
+    return my_2d_rasterizer(im, fn=vis_fn, f=f)
 
 
 def check_if_greyscale_values(im, n_sample_points=30, thresh=0.001):
