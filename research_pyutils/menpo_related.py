@@ -149,7 +149,7 @@ def compute_overlap(pt0, pt1):
     return overlap
 
 
-def my_2d_rasterizer(im, fn=None, group=None, f=None):
+def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False):
     """
     Visualisation related function. It accepts a menpo image and renders
     a **single** pair of landmarks in a new image.
@@ -159,7 +159,10 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None):
     :param fn: (optional) If None, then the default .view_landmarks() is
         used for visualisation, otherwise the provided function.
     :param group: (optional) Used in case fn is None.
-    :param f: (optional) Matplotlib figure to use. Leave None, unless you know how to modify.
+    :param f: (optional) Matplotlib figure to use. Leave None, unless 
+        you know how to modify.
+    :param crop: (optional) Crop the resulting visualisation to avoid the
+        the excessive white boundary. By default False.
     :return: menpo rasterised image.
     """
     if fn is None:
@@ -190,6 +193,10 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None):
         else:
             m1 = 'Not recognised type of original dtype ({}).'
             print(m1.format(dtype))
+    if crop:
+            # # position to crop the rasterised image (hardcoded for now).
+            cri = (50, 120)
+            im_plt = im_plt.crop((cri[0], cri[1]), (sh1[0] + cri[0], sh1[1] + cri[1]))
     return im_plt
 
 
@@ -234,8 +241,6 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
     # visualise all the bounding boxes for the frame.
     c1 = colours[:len(labels)]
     f = plt.figure(frameon=False)
-    r = view_image_multiple_landmarks(im, labels,
-                                      )
     vis_fn = partial(view_image_multiple_landmarks, groups=labels, subplots_enabled=False,
                      line_colour=c1, marker_face_colour=c1, line_width=5,
                      marker_size=marker_sz, figure_id=f.number,
