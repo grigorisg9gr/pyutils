@@ -149,7 +149,7 @@ def compute_overlap(pt0, pt1):
     return overlap
 
 
-def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False):
+def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False, message=None):
     """
     Visualisation related function. It accepts a menpo image and renders
     a **single** pair of landmarks in a new image.
@@ -163,6 +163,9 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False):
         you know how to modify.
     :param crop: (optional) Crop the resulting visualisation to avoid the
         the excessive white boundary. By default False.
+    :param message: (optional) If None, nothing is added in the image. If a
+        string is passed, then this is annotated (as text) with matplotlib
+        utilities, i.e. the exact same text is written in the image.
     :return: menpo rasterised image.
     """
     if fn is None:
@@ -173,6 +176,12 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False):
         r = im.view_landmarks(group=group)
     else:
         fn(im)
+    if message is not None:
+        assert isinstance(message, str)
+        t = plt.annotate(message, xy=(5, im.shape[0] - 10), 
+                         size=26, fontweight='bold', color='b')
+        # set background transparency
+        t.set_bbox(dict(color='w', alpha=0.5, edgecolor='w'))
     # get the image from plt
     f.tight_layout(pad=0)
     # Get the pixels directly from the canvas buffer which is fast
@@ -196,6 +205,7 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False):
     if crop:
             # # position to crop the rasterised image (hardcoded for now).
             cri = (50, 120)
+            sh1 = im_plt.shape
             im_plt = im_plt.crop((cri[0], cri[1]), (sh1[0] + cri[0], sh1[1] + cri[1]))
     return im_plt
 
