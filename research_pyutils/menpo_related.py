@@ -178,7 +178,8 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False, message=None):
         fn(im)
     if message is not None:
         assert isinstance(message, str)
-        t = plt.annotate(message, xy=(5, im.shape[0] - 10), 
+        st1 = 25 + 90 * crop
+        t = plt.annotate(message, xy=(st1, im.shape[0] - 10), 
                          size=26, fontweight='bold', color='b')
         # set background transparency
         t.set_bbox(dict(color='w', alpha=0.5, edgecolor='w'))
@@ -204,7 +205,7 @@ def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False, message=None):
             print(m1.format(dtype))
     if crop:
             # # position to crop the rasterised image (hardcoded for now).
-            cri = (50, 120)
+            cri = (50, 60)
             sh1 = im_plt.shape
             im_plt = im_plt.crop((cri[0], cri[1]), (sh1[0] + cri[0], sh1[1] + cri[1]))
     return im_plt

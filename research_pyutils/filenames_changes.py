@@ -49,6 +49,8 @@ def change_suffix(file_path, ext, initial_suffix='', new_suffix=''):
     """
     if not isdir(file_path):
         return -1
+    # #  TODO: modify in case we want to include all the (diverse) files in a
+    # single folder.
     file_path = join(file_path, '')  # add a separator if non exists.
     ext = '.' + ext if ext[0] != '.' else ext
     end1 = initial_suffix + ext
@@ -59,7 +61,7 @@ def change_suffix(file_path, ext, initial_suffix='', new_suffix=''):
         till_pos = -end_p if elem_n.rfind('_') < 0 else elem_n.rfind('_')
         new_name = file_path + elem_n[:till_pos] + new_suffix + ext
         if isfile(new_name):
-            # TODO: this about this case, e.g. if 01.txt and 01_1.txt both exist.
+            # TODO: think about this case, e.g. if 01.txt and 01_1.txt both exist.
             m = 'The file already exists, not overwritting it.'
             print(m.format(new_name))
             continue
