@@ -18,7 +18,7 @@ list_files = ['00001.txt', '00001_1.txt', '00002_1.txt2', '00002_2.txt', '00002.
               '00004.txt', '00002.pt', '00004.pt']
 mkdir_msg = 'Test of {} is postponed, since the random path exists.'
 # format a set-up path (attention, the parent path(s) of this might be hardcoded).
-test_p_parent = join(files_path, rand_str, '')
+test_p_parent = join(files_path, 'test_mkdirs', rand_str, '')
 if isdir(test_p_parent):
     print(mkdir_msg.format('tests_general_testing_path'))
 else:

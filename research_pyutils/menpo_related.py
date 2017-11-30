@@ -90,7 +90,8 @@ def flip_images(ims, rotate=False):
     the menpo convenience function for semantically correcting the flipped ones.
     :param ims: (image or list of images) Menpo images to flip.
     :param rotate: (bool, optional) Add an optional rotation to the image(s).
-    :return: The flipped images.
+    :return: The flipped images. If the images contain landmarks of ibug68 format,
+        those will also be flipped appropriately (semantically).
     """
     from menpo.landmark import face_ibug_68_mirrored_to_face_ibug_68 as mirr68
     if not isinstance(ims, list):
