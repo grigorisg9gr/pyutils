@@ -160,4 +160,5 @@ def test_folders_last_modification():
     last_mod = folders_last_modification(test_p, return_vars=True)
     delta = datetime.now() - last_mod
     assert delta.total_seconds() < 10, delta.total_seconds()
-
+    # remove the temp path and files
+    rmtree(test_p_parent)
