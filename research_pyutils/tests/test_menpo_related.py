@@ -1,7 +1,11 @@
 try:
     import menpo.io as mio
 except ImportError:
-    assert 0, 'Message must be printed here, also scheme to skip these tests.'
+    # # effort 1 to achieve skipping the tests when menpo does not exist:
+    # # https://stackoverflow.com/a/12488542/1716869
+    from unittest import SkipTest
+    msg = 'Menpo libary was not imported, skipping the tests in {}'
+    SkipTest(msg.format(__file__))
 import numpy as np
 
 
