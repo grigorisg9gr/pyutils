@@ -287,3 +287,54 @@ def check_if_greyscale_values(im, n_sample_points=30, thresh=0.001):
             break
     # If the loop is interrupted it has the value wrong.
     return cond
+
+
+def pad_img(im, sht, force_shape=True):
+    """
+    Pad an image to a given shape. If the image is bigger than the  target shape (sht),
+    then depending on the force_shape an action is decided.
+    Warning: experimental function, not tested for all cases!
+    :param im: Menpo type image.
+    :param sht: (typle, list, nd.array) Target shape for the image.
+    :param force_shape: (bool, opt) If True, then the shape is forced to be reduced to the target
+        one if bigger than that.
+    :return: The new image reshaped in the target shape (unless force_shape == False).
+    """
+    # TODO: improve this function for all cases.
+    # # lambda function as 'macro' for avoiding a long pad below:
+    pad1 = lambda px, pdd1=(0, 0), pdd2=(0, 0): np.pad((0, 0), pdd1, pdd2, mode='constant')
+    px = im.pixels
+    sh = np.array(sht) - np.array(im.shape)
+    if sh[0] < 0:
+        if force_shape:
+            px = px[:, -sh[0]:, :]
+        else:
+            print('The image is larger than the target shape.')
+            return im
+    if sh[1] < 0:
+        return Image(px, copy=False).resize(sht)
+    if sh[0] > 0:
+        px = pad1(px, pdd1=(sh[0] // 2, sh[0] // 2 + sh[0] % 2))
+    if sh[1] > 0:
+        px = pad1(pdd2=(sh[1] // 2, sh[1] // 2 + sh[1] % 2))
+    return Image(px, copy=False)
+
+
+def pad_with_same_aspect_ratio(im, shtarget1, max_rescale=2.):
+    """
+    Pads an image based on the max of the original dimensions. Also,
+    if the rescale is bigger than max_recale, it performs a rescale up
+    to this point and the rest is padded.
+    The goal is to result in an image with similar aspect ratio as the
+    original image.
+    Warning: experimental function, not tested for all cases!
+    :param im:  Menpo type image.
+    :param shtarget1:  (list, tuple, nd.array) Target shape for the image.
+    :param max_rescale: (float, optional) Maximum rescale allowed for the image.
+    :return: The padded/rescale image.
+    """
+    #  TODO: think better all the cases, (e.g. max_rescale < 1).
+    resc = min(max_rescale, np.max(shtarget1) / np.max(im.shape))
+    im1 = im.rescale(resc)
+    im1 = pad_img(im1, shtarget1)
+    return im1
