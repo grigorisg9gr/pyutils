@@ -347,3 +347,26 @@ def pad_with_same_aspect_ratio(im, shtarget1, max_rescale=2., return_info=False)
         return im1, resc, sh
     return im1
 
+
+def get_segment_image(im, n_segment, n_total, axis=1):
+    """
+    Returns the segment of the image requested. This is the reverse of
+    concatenate, i.e. given a (concatenated) image, it divides it into
+    'n_total' segments and returns the 'n_segment'.
+    :param im: Menpo type image (channels in front).
+    :param n_segment: (int) The segment to return, 1-based.
+    :param n_total: (int) Total number of segments to divide the image.
+    :param axis: (int)
+    :return: Segment of the image (menpo image type).
+    """
+    sh1 = im.pixels.shape[axis] // n_total
+    if im.pixels.shape[axis] % n_total != 0:
+        print('Not exact division into segments.')
+    if axis == 1:
+        px = im.pixels[:, (n_segment - 1) * sh1: n_segment * sh1, :]
+    elif axis == 2:
+        px = im.pixels[:, :, (n_segment - 1) * sh1: n_segment * sh1]
+    else:
+        px = im.pixels[(n_segment - 1) * sh1: n_segment * sh1]
+    return Image(px)
+

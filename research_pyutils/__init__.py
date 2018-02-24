@@ -9,7 +9,7 @@ try:
                                 process_lns_path, compute_overlap,
                                 rasterize_all_lns, flip_images,
                                 check_if_greyscale_values,
-                                my_2d_rasterizer)
+                                my_2d_rasterizer, get_segment_image)
 except ImportError:
     m1 = ('The menpo related utils are not imported. If '
           'you intended to use them please check your '

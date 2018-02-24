@@ -7,11 +7,15 @@ except ImportError:
     msg = 'Menpo libary was not imported, skipping the tests in {}'
     SkipTest(msg.format(__file__))
 import numpy as np
+glob_im = mio.import_builtin_asset.lenna_png()
+# # lambda function for ensuring the equality of menpo image shapes.
+im_shape = lambda im: np.array(im.pixels.shape)
+shape_eq = lambda im1, im2: np.all(im_shape(im1) == im_shape(im2))
 
 
 def test_flip_images():
     from research_pyutils import flip_images
-    im = mio.import_builtin_asset.lenna_png()
+    im = glob_im.copy()
     ims = flip_images(im)
     assert len(ims) == 1
     # get the pure mirror.
@@ -97,3 +101,49 @@ def test_compute_overlap_fake_bb():
     ov1 = compute_overlap(bb1.points, bb2.points)
     assert np.abs(ov1 - 0.64) < 0.0001
 
+
+def test_get_segment_image_single_semgnet():
+    from research_pyutils import get_segment_image
+    im = glob_im.copy()
+    im_segm = get_segment_image(im, 1, 1)
+    assert shape_eq(im, im_segm), '{} {}'.format(im.shape, im_segm.shape)
+
+
+def test_get_segment_image_two_semgnets():
+    from research_pyutils import get_segment_image
+    im = glob_im.copy()
+    im_segm = get_segment_image(im, 1, 2)
+    # # format the original shape to match the new one.
+    shape_org = im_shape(im)
+    shape_org[1] //= 2
+    assert np.all(shape_org == im_shape(im_segm))
+    # # also check the content to match.
+    diff = im.pixels[:, :shape_org[1]] - im_segm.pixels
+    assert np.all(np.abs(diff) < 0.0001)
+
+    # # perform the actions again for segment two.
+    im_segm2 = get_segment_image(im, 2, 2)
+    assert np.all(shape_org == im_shape(im_segm2))
+    # # also check the content to match.
+    diff = im.pixels[:, shape_org[1]:] - im_segm2.pixels
+    assert np.all(np.abs(diff) < 0.0001)
+
+
+def test_get_segment_image_two_semgnets_diff_axis():
+    from research_pyutils import get_segment_image
+    im = glob_im.copy()
+    im_segm = get_segment_image(im, 1, 2, axis=2)
+    # # format the original shape to match the new one.
+    shape_org = im_shape(im)
+    shape_org[2] //= 2
+    assert np.all(shape_org == im_shape(im_segm))
+
+
+def test_get_segment_image_three_semgnets_imprecise_div():
+    from research_pyutils import get_segment_image
+    im = glob_im.copy()
+    im_segm = get_segment_image(im, 1, 3, axis=2)
+    # # format the original shape to match the new one.
+    shape_org = im_shape(im)
+    shape_org[2] //= 3
+    assert np.all(shape_org == im_shape(im_segm))
