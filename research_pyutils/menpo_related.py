@@ -302,7 +302,7 @@ def pad_img(im, sht, force_shape=True):
     """
     # TODO: improve this function for all cases.
     # # lambda function as 'macro' for avoiding a long pad below:
-    pad1 = lambda px, pdd1=(0, 0), pdd2=(0, 0): np.pad((0, 0), pdd1, pdd2, mode='constant')
+    padl = lambda px, pdd1=(0, 0), pdd2=(0, 0): np.pad(px, ((0, 0), pdd1, pdd2), mode='constant')
     px = im.pixels
     sh = np.array(sht) - np.array(im.shape)
     if sh[0] < 0:
@@ -314,13 +314,14 @@ def pad_img(im, sht, force_shape=True):
     if sh[1] < 0:
         return Image(px, copy=False).resize(sht)
     if sh[0] > 0:
-        px = pad1(px, pdd1=(sh[0] // 2, sh[0] // 2 + sh[0] % 2))
+        px = padl(px, pdd1=(sh[0] // 2, sh[0] // 2 + sh[0] % 2))
     if sh[1] > 0:
-        px = pad1(pdd2=(sh[1] // 2, sh[1] // 2 + sh[1] % 2))
+        # # TEMP, fix this one.
+        px = padl(px, pdd2=(sh[1] // 2, sh[1] // 2 + sh[1] % 2))
     return Image(px, copy=False)
 
 
-def pad_with_same_aspect_ratio(im, shtarget1, max_rescale=2.):
+def pad_with_same_aspect_ratio(im, shtarget1, max_rescale=2., return_info=False):
     """
     Pads an image based on the max of the original dimensions. Also,
     if the rescale is bigger than max_recale, it performs a rescale up
@@ -331,10 +332,18 @@ def pad_with_same_aspect_ratio(im, shtarget1, max_rescale=2.):
     :param im:  Menpo type image.
     :param shtarget1:  (list, tuple, nd.array) Target shape for the image.
     :param max_rescale: (float, optional) Maximum rescale allowed for the image.
+    :param return_info: (bool, optional) If True, it returns the rescaling and the
+           padding done (e.g. in case we want to reverse it).
     :return: The padded/rescale image.
     """
     #  TODO: think better all the cases, (e.g. max_rescale < 1).
     resc = min(max_rescale, np.max(shtarget1) / np.max(im.shape))
     im1 = im.rescale(resc)
+    # # sh is effectively the padding conducted in the image, computed here only for
+    # # the case that we want to return the info
+    sh = np.array(shtarget1) - np.array(im1.shape)
     im1 = pad_img(im1, shtarget1)
+    if return_info:
+        return im1, resc, sh
     return im1
+
