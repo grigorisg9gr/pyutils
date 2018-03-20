@@ -7,9 +7,9 @@ from .path_related import (mkdir_p, rm_if_exists, remove_empty_paths,
 try:
     from .menpo_related import (resize_all_images, from_ln_to_bb_path,
                                 process_lns_path, compute_overlap,
-                                rasterize_all_lns, flip_images,
-                                check_if_greyscale_values,
-                                my_2d_rasterizer, get_segment_image)
+                                flip_images, check_if_greyscale_values,
+                                get_segment_image)
+    from .visualizations import my_2d_rasterizer, rasterize_all_lns
 except ImportError:
     m1 = ('The menpo related utils are not imported. If '
           'you intended to use them please check your '
