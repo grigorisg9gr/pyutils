@@ -1,9 +1,22 @@
 import matplotlib as mpl
 mpl.use('Agg')
-from os.path import join, isdir, isfile
+from os.path import join, isdir, isfile, sep
+from os import system
+import numpy as np
 from functools import partial
+from pathlib import Path
 import matplotlib.pyplot as plt
+import menpo.io as mio
+from menpo.image import Image
 from menpofit.visualize import view_image_multiple_landmarks
+
+from .path_related import mkdir_p
+try:
+    from .personal import list_to_latex
+except ImportError:
+    m = ('Unfortunately, you cannot use the function '
+         'plot_image_latex_with_subcaptions().')
+    print(m)
 
 
 def my_2d_rasterizer(im, fn=None, group=None, f=None, crop=False, message=None):
@@ -114,3 +127,85 @@ def rasterize_all_lns(im, labels=None, colours='r', marker_sz=5, treat_as_bb=Fal
                      marker_size=marker_sz, figure_id=f.number,
                      render_legend=False)
     return my_2d_rasterizer(im, fn=vis_fn, f=f)
+
+
+def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=None,
+                                      normalise=None, allow_fail=False,
+                                      overwr=True):
+    """
+    Customised function for my papers. It plots variations of an image (i.e. different
+        images) next to each other with the respective legend names.
+    The idea is: Import one by one from the folds, normalise (e.g. resize) and export each
+        with a predictable name. Write the tex file and compile it to create the image
+        with the several subplots and the custom labels.
+    Attention: Because of latex compilation, this function writes and reads from the disk,
+        so pay attention to the pout path.
+    :param folds: (list) Names of the parent folders to search the image to. The assumption
+        is that all those are relative to pb path.
+    :param pb:    (str) Base path where the images to be imported exist.
+    :param pout:  (str) Path to export the result in. The method will write the result in a
+        new sub-folder named 'concatenated'.
+    :param name_im: (str) Name (stem + suffix) of the image to be imported from folds.
+    :param legend_names: (optional, list or None) If provided, it should match in length the
+        folds; each one will be respectively provided as a sub-caption to the respective image.
+    :param normalise: (optional, function or None) If not None, then the function accepts
+        a menpo image and normalises it.
+    :param allow_fail: (optional, list or bool) If bool, it is converted into a list of
+        length(folds). The images from folds that do not exist
+        will be ignored if allow_fail is True.
+    :param overwr:     (optional, bool) To overwrite or not the intermediate results written.
+    :return:
+    # TODO: extend the formulation to provide freedom in the number of elements per line etc.
+    """
+    # # short lambda for avoiding the long import command.
+    import_im = lambda p, norm=False: mio.import_image(p, landmark_resolver=None,
+                                                       normalize=norm)
+    # # names_imout: Names of the output images in the disk.
+    # # names_meth: Method of the name to put in the sub-caption.
+    names_imout, names_meth = [], []
+    # # if allow_fail is provided as a single boolean, convert into a list, i.e.
+    # # each one of the folders has different permissions.
+    if not isinstance(allow_fail, list):
+        allow_fail = [allow_fail for _ in range(len(folds))]
+
+    for cnt, fold in enumerate(folds):
+        if allow_fail[cnt]:
+            # # In this case, we don't mind if an image fails.
+            try:
+                im = import_im(join(pb, fold, name_im))
+            except:
+                continue
+        else:
+            im = import_im(join(pb, fold, name_im))
+        # # get the name for the sub-caption (legend).
+        if legend_names is not None:
+            names_meth.append(legend_names[cnt])
+        else:
+            assert 0, 'Not implemented for now! Need to use map_to_name()'
+        # # Optionally resize the image.
+        if normalise:
+            im = normalise(im)
+        # # export the image into the disk and append the name exported in the list.
+        nn = '{}_{}'.format(Path(fold).stem, im.path.name)
+        mio.export_image(im, pout + nn, overwrite=overwr)
+        names_imout.append(nn)
+
+    # # export into a file the latex command.
+    nlat = Path(name_im).stem
+    fo = open(pout + '{}.tex'.format(nlat),'wt')
+    fo.writelines(('\\documentclass{article}\\usepackage{amsmath}'
+                   '\n\\usepackage{graphicx}\\usepackage{subfig}'
+                   '\\begin{document}\n'))
+    list_to_latex(names_imout, wrap_subfloat=True, names_subfl=names_meth, pbl='',
+                  file_to_print=fo, caption='')
+    fo.writelines('\\thispagestyle{empty}\\end{document}\n')
+    fo.close()
+
+    # # the concatenated for the final png
+    pout1 = Path(mkdir_p(join(pout, 'concatenated', '')))
+    # # create the png image and delete the tex and intermediate results.
+    cmd = ('cd {0}; pdflatex {1}.tex; pdfcrop {1}.pdf;'
+           'rm {1}.aux {1}.log {1}.pdf; mv {1}-crop.pdf {2}.pdf;'
+           'pdftoppm -png {2}.pdf > {2}.png; rm {2}.pdf; rm {0}*.png; rm {0}*.tex')
+    nconc = pout1.stem + sep + nlat
+    system(cmd.format(pout, nlat, nconc))
