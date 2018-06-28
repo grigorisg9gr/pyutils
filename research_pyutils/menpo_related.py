@@ -3,6 +3,7 @@ from functools import partial
 import numpy as np
 import menpo.io as mio
 from menpo.image import Image
+from menpo.shape import PointCloud
 
 
 def process_lns_path(process, shapes=None, p_in=None, p_out=None, overwrite=None):
@@ -222,7 +223,7 @@ def pad_with_same_aspect_ratio(im, shtarget1, max_rescale=2., return_info=False)
            padding done (e.g. in case we want to reverse it).
     :return: The padded/rescale image.
     """
-    #  TODO: think better all the cases, (e.g. max_rescale < 1).
+    #  TODO: think better all the cases, (e.g. max_rescale < 1). -> It works.
     resc = min(max_rescale, np.max(shtarget1) / np.max(im.shape))
     im1 = im.rescale(resc)
     # # sh is effectively the padding conducted in the image, computed here only for
@@ -255,4 +256,135 @@ def get_segment_image(im, n_segment, n_total, axis=1):
     else:
         px = im.pixels[(n_segment - 1) * sh1: n_segment * sh1]
     return Image(px)
+
+
+def _info_from_first_line(line):
+    """
+    Gets the info from the first line of landmarks' txt. The format of the file
+    is hardcoded for now, e.g. the expected numbers and fields.
+    It returns a dictionary, which enables future extensions of what is returned.
+
+    Along with the functions _from_line_to_vec, from_txt_to_numpy_points, and
+    access_ln_frame they are the functions to access the single txt (with sparse
+    landmarks) per video.
+    Unless you know how to call the function, please avoid calling it directly, it is used
+    internally by the from_txt_to_numpy_points().
+    :param line:
+    :return: Dict with meta-data.
+    """
+    info = {}
+    # # get the framename of the first (assumed int!)
+    info['init_framename'] = int(line[line.find(':') + 1: line.find('\t')])
+    # # get the number of frames.
+    line1 = line[line.find('n_frames:'):]
+    info['n_frames'] = int(line1[9: line1.find('\t')])
+    # # get the number of landmarks.
+    line2 = line[line.find('n_landmarks:'):]
+    info['n_landm'] = int(line2[12: line2.find('\n')])
+    return info
+
+
+def _from_line_to_vec(line, vec_sz):
+    """
+    Accepts a line from a txt (str) and converts it into a numpy vector.
+    Unless you know how to call the function, please avoid calling it directly, it is used
+    internally by the from_txt_to_numpy_points().
+
+    :param line: (str) A string that contains numbers separated by commas.
+    :param vec_sz: (int) Number of numbers expected in the line.
+    :return: Numpy vector with the numbers.
+    """
+    # # out of the line, get only the 'vector' (string formatted).
+    line_vec = line[line.find('\t') + 1:]
+    # # convert the string into a numpy vector and return it.
+    # # The separator is hardcoded based on the export code.
+    return np.fromstring(line_vec, sep=', ', count=vec_sz)
+
+
+def from_txt_to_numpy_points(pln_txt):
+    """
+    Converts the txt file (the path of which is provided) to a numpy
+    matrix containing numbers (e.g. landmark points).
+
+    After the txt is wrapped, it calls external functions for parsing both
+    the meta-data and the actual numbers. Those functions have hardcoded
+    assumptions regarding the txt format, e.g.
+    the first frame info, the format of every line.
+    :param pln_txt: (str) Path of the txt file to be parsed.
+    :return: i) the numpy matrix with the points, ii) a dict with the
+        meta-data info, iii) positions that it found valid points (which might
+        not be sequential).
+    """
+    txt = open(pln_txt, 'rt')
+    lines = txt.readlines()
+    info = _info_from_first_line(lines[0])
+    # # get the size of the vectorized landmark points.
+    vec_sz = info['n_landm'] * 2
+
+    # # points_np: Will have all the landmarks for the clip if those exist. If
+    # # a landmark does not exist, then the element will consist of zeros.
+    # # converted to numpy float32 to avoid excessive use of memory (sub-pixel coordinates).
+    points_np = np.zeros((info['n_frames'], info['n_landm'], 2), dtype=np.float32)
+
+    # # positions_found: The positions (relative to the first frame) that we
+    # # found landmarks on.
+    positions_found = []
+
+    # # Iterate over all the lines and export the points in the points_np.
+    # # The iterator starts from -1, in order to ignore the first dummy row.
+    for cnt, line in enumerate(lines):
+        if cnt == 0:
+            continue
+        pt = _from_line_to_vec(line, vec_sz)
+        # # get the actual number of frame that these points correspond to.
+        cnt1 = int(line[:line.find('::')])
+        # # assign the point after reshaped to the appropriate position (row declares
+        # # the ascending number of the frame).
+        points_np[cnt1] = pt.reshape((-1, 2))
+        positions_found.append(cnt1)
+    return points_np, info, positions_found
+
+
+def access_ln_frame(points, info_txt, idx=None, frame_name=None,
+                    allow_fail=True, eps=1e-4):
+    """
+    Given a numpy 3D matrix (e.g. landmark points for the whole clip),
+    the index OR the frame name, it returns the landmarks for the
+    particular frame.
+    In other words, it allows the direct access to a particular frames'
+    numbers (landmarks).
+
+    :param points: (numpy matrix) The matrix that contains the data.
+    :param info_txt: (dict) Dictionary with meta-data.
+    :param idx:  (int, optional) If we want a particular index of the data,
+        we provide it with idx.
+    :param frame_name: (str, optional) Either provide this or the idx to
+        find a particular frame.
+    :param allow_fail: (bool, optional) If True, if the landmark does not exist, we
+        catch the error and return None, otherwise there will be an error
+        if it does not exist.
+    :param eps: (float, optional) Accuracy to ensure that the landmark
+        does not include zeros (considered dummy).
+    :return: The PointCloud with the landmarks (or None if not found).
+    """
+    if idx is None:
+        # # In this case, the name should have been provided, so convert
+        # # this to an index. Assumption: Based on assumptions during
+        # # exporting, the frame_name is the stem that contains *only*
+        # # numbers. Also, same padding as init_framename assumed.
+        idx = int(frame_name) - info_txt['init_framename']
+    if allow_fail:
+        try:
+            pt = points[idx]
+        except:
+            return None
+    else:
+        pt = points[idx]
+    if pt[0, 0] < eps and pt[0, 1] < eps:
+        # # check whether all landmarks are almost zero.
+        if np.all(np.abs(pt) < eps):
+            # # If the landmarks are zero, return none.
+            return None
+    return PointCloud(pt)
+
 
