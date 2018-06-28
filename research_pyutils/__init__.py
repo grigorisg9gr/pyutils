@@ -2,7 +2,7 @@
 from .path_related import (mkdir_p, rm_if_exists, remove_empty_paths,
                            copy_contents_of_folder, count_files, 
                            copy_the_previous_if_missing, 
-                           folders_last_modification)
+                           folders_last_modification, apply_fn_all_subfolders,)
 
 try:
     from .menpo_related import (resize_all_images, from_ln_to_bb_path,

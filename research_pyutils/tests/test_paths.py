@@ -162,3 +162,37 @@ def test_folders_last_modification():
     assert delta.total_seconds() < 10, delta.total_seconds()
     # remove the temp path and files
     rmtree(test_p_parent)
+
+
+def test_apply_fn_all_subfolders():
+    from research_pyutils import apply_fn_all_subfolders, mkdir_p
+    from os import system
+    ptest1 = mkdir_p(join(test_p, 'tt', ''))
+    # # create a dummy file
+    filed = '{}test.pyc'.format(ptest1)
+    system('touch ' + filed)
+
+    # # define a function that does something unrelated, e.g. deletes different
+    # # extension files than the ones we have.
+    fn = lambda path1: system('rm {}*.pyrr'.format(path1))
+    assert isfile(filed)
+    apply_fn_all_subfolders(test_p, fn)
+    assert isfile(filed)
+
+    # # define a function that deletes the dummy file.
+    fn = lambda path1: system('rm {}*.pyc'.format(path1))
+    assert isfile(filed)
+    apply_fn_all_subfolders(test_p, fn)
+    assert isdir(ptest1) and not isfile(filed)
+
+    # # define a function that creates new files.
+    fn = lambda path1: system('touch {}/__init__.py'.format(path1))
+    file_create = '__init__.py'
+    assert not isfile(ptest1 + file_create)
+    apply_fn_all_subfolders(test_p, fn)
+    # # test that it exists both in base path and in the ptest1.
+    assert isfile(test_p + file_create) and isfile(ptest1 + file_create)
+    assert not isfile(test_p + file_create + 'c')
+
+    # remove the temp path and files
+    rmtree(test_p_parent)

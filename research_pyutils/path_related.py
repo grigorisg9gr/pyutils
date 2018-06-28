@@ -277,3 +277,18 @@ def folders_last_modification(path, return_vars=True, verbose=True):
         from datetime import datetime
         return datetime.fromtimestamp(last_mod)
 
+
+def apply_fn_all_subfolders(pb, func):
+    """
+    Applies a function in each folder and its subfolders (recursive calls).
+    :param pb: (str) Base path.
+    :param func: (function) The function to apply to each folder.
+    :return: -
+    """
+    func(pb)
+    for fn in sorted(listdir(pb)):
+        if isdir(pb + fn):
+            # # then call the function recursively for this dir.
+            print(fn)
+            apply_fn_all_subfolders(join(pb, fn, ''), func)
+
