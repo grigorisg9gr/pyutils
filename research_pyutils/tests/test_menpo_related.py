@@ -147,3 +147,20 @@ def test_get_segment_image_three_semgnets_imprecise_div():
     shape_org = im_shape(im)
     shape_org[2] //= 3
     assert np.all(shape_org == im_shape(im_segm))
+
+
+def test_access_ln_frame_simple():
+    from research_pyutils import access_ln_frame
+    # # define a dummy matrix.
+    mat = np.random.rand(10, 68, 2)
+    # # call the access_ln_frame and assert the
+    # # similarity of the results.
+    row = access_ln_frame(mat, {}, idx=2)
+    assert np.allclose(mat[2], row.points)
+    # # define a tensor of more dims and use the same function.
+    mat2 = np.random.rand(10, 68, 4, 4, 3)
+    # # call the access_ln_frame and assert the
+    # # similarity of the results.
+    row = access_ln_frame(mat2, {}, idx=9)
+    assert np.allclose(mat2[9], row.points)
+

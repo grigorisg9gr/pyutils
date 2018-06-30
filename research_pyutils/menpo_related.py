@@ -301,7 +301,7 @@ def _from_line_to_vec(line, vec_sz):
     return np.fromstring(line_vec, sep=', ', count=vec_sz)
 
 
-def from_txt_to_numpy_points(pln_txt):
+def from_txt_to_numpy_points(pln_txt, return_only_first=False):
     """
     Converts the txt file (the path of which is provided) to a numpy
     matrix containing numbers (e.g. landmark points).
@@ -311,6 +311,8 @@ def from_txt_to_numpy_points(pln_txt):
     assumptions regarding the txt format, e.g.
     the first frame info, the format of every line.
     :param pln_txt: (str) Path of the txt file to be parsed.
+    :param return_only_first: (bool, optional) If True, it just returns the first
+        frames points. This is a convenience arg for quick access. Default: False.
     :return: i) the numpy matrix with the points, ii) a dict with the
         meta-data info, iii) positions that it found valid points (which might
         not be sequential).
@@ -335,6 +337,8 @@ def from_txt_to_numpy_points(pln_txt):
     for cnt, line in enumerate(lines):
         if cnt == 0:
             continue
+        if return_only_first and cnt >= 2:
+            break
         pt = _from_line_to_vec(line, vec_sz)
         # # get the actual number of frame that these points correspond to.
         cnt1 = int(line[:line.find('::')])
@@ -380,7 +384,7 @@ def access_ln_frame(points, info_txt, idx=None, frame_name=None,
             return None
     else:
         pt = points[idx]
-    if pt[0, 0] < eps and pt[0, 1] < eps:
+    if np.all(pt[0, 0] < eps) and np.all(pt[0, 1] < eps):
         # # check whether all landmarks are almost zero.
         if np.all(np.abs(pt) < eps):
             # # If the landmarks are zero, return none.
