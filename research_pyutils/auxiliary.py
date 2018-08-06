@@ -158,3 +158,11 @@ def populate_visual_options(l1, new_len=40):
         l2.append(l1[np])
     return l2
 
+
+def printtime(msg, time_format='%H:%M:%S'):
+    """
+    Wraps the typical print(msg) with a time to display
+    the time.
+    """
+    print('[{}] {}'.format(strftime(time_format), msg))
+
