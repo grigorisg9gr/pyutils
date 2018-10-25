@@ -2,7 +2,7 @@ import os
 import sys
 import inspect
 import numpy as np
-import time
+from time import strftime
 import socket
 
 
@@ -109,7 +109,7 @@ def execution_stats(return_vars=True, verbose=True):
     :return:
     """
     pc = socket.gethostname()
-    time1 = time.strftime("%d/%m/%Y, %H:%M:%S")
+    time1 = strftime("%d/%m/%Y, %H:%M:%S")
     try:
         import psutil
         mem = psutil.virtual_memory()
@@ -159,7 +159,7 @@ def populate_visual_options(l1, new_len=40):
     return l2
 
 
-def printtime(msg, time_format='%H:%M:%S'):
+def printtime(msg, time_format='%a %d/%m %H:%M:%S'):
     """
     Wraps the typical print(msg) with a time to display
     the time.
