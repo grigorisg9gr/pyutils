@@ -4,6 +4,8 @@ import inspect
 import numpy as np
 from time import strftime
 import socket
+from functools import reduce
+import operator
 
 
 
@@ -165,4 +167,17 @@ def printtime(msg, time_format='%a %d/%m %H:%M:%S'):
     the time.
     """
     print('[{}] {}'.format(strftime(time_format), msg))
+
+
+def get_by_nested_path(root, items):
+    """Access a nested object in root by item sequence."""
+    return reduce(operator.getitem, items, root)
+
+
+def set_in_nested_path(root, items, value):
+    """
+    Set a value in a nested object in root by item sequence.
+    https://stackoverflow.com/a/14692747
+    """
+    get_by_nested_path(root, items[:-1])[items[-1]] = value
 

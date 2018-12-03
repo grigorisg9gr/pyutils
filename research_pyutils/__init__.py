@@ -22,5 +22,6 @@ from .filenames_changes import (rename_files, change_suffix,
 
 from .auxiliary import (execution_stats, compare_python_types,
                         whoami, populate_visual_options,
-                        printtime)
+                        printtime, get_by_nested_path, 
+                        set_in_nested_path)
 
