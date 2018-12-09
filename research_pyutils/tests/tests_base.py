@@ -36,5 +36,12 @@ def aux_require_file_existence(filenames, path):
         # http://stackoverflow.com/a/12654798/1716869
         open(path + file1, 'a').close()
 
+
+def bytes2str(info):
+    """ Converts bytes to string. """
+    if isinstance(info, bytes):
+        info = info.decode("utf-8")
+    return info
+
 # # grigoris, this file contains few common functions, reference variables that
 # # are required in all the files.

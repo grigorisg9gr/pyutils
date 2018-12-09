@@ -209,4 +209,4 @@ def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=Non
            'rm {1}.aux {1}.log {1}.pdf; mv {1}-crop.pdf {2}.pdf;'
            'pdftoppm -png {2}.pdf > {2}.png; rm {2}.pdf; rm {0}*.png; rm {0}*.tex')
     nconc = pout1.stem + sep + nlat
-    system(cmd.format(pout, nlat, nconc))
+    return popen(cmd.format(pout, nlat, nconc))
