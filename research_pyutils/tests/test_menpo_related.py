@@ -164,3 +164,36 @@ def test_access_ln_frame_simple():
     row = access_ln_frame(mat2, {}, idx=9)
     assert np.allclose(mat2[9], row.points)
 
+
+def test_concatenate_all_ims_from_list():
+    from research_pyutils import concatenate_all_ims_from_list
+    im = glob_im.copy()
+    ims = [im, im, im]
+
+    # # # # # case 1: horizontal concat. # # # # #
+    im_c = concatenate_all_ims_from_list(ims)
+    # # check the sizes of the images.
+    sh_i = im.pixels.shape
+    sh_c = im_c.pixels.shape
+    cond = (sh_i[0] == sh_c[0]) and (sh_i[1] == sh_c[1]) and (sh_i[2] * len(ims) == sh_c[2])
+    assert cond
+    # # ensure they have same pixels.
+    assert np.all(im_c.pixels[:, :, :sh_i[2]] == im.pixels)
+
+    # # # # # case 2: vertical concat. # # # # #
+    im_c = concatenate_all_ims_from_list(ims, axis=1)
+    # # check the sizes of the images.
+    sh_i = im.pixels.shape
+    sh_c = im_c.pixels.shape
+    cond = (sh_i[0] == sh_c[0]) and (sh_i[1] * len(ims) == sh_c[1]) and (sh_i[2] == sh_c[2])
+    assert cond
+
+    # # # # # case 3: single image # # # # #
+    ims = [im]
+    im_c = concatenate_all_ims_from_list(ims, axis=1)
+    # # check the sizes of the images.
+    sh_i = im.pixels.shape
+    sh_c = im_c.pixels.shape
+    cond = (sh_i[0] == sh_c[0]) and (sh_i[1] == sh_c[1]) and (sh_i[2] == sh_c[2])
+    assert cond
+    assert np.all(im_c.pixels == im.pixels)
