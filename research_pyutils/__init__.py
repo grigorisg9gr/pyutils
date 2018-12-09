@@ -9,7 +9,8 @@ try:
                                 process_lns_path, compute_overlap,
                                 flip_images, check_if_greyscale_values,
                                 get_segment_image, access_ln_frame,
-                                from_txt_to_numpy_points)
+                                from_txt_to_numpy_points,
+                                concatenate_all_ims_from_list)
     from .visualizations import my_2d_rasterizer, rasterize_all_lns
 except ImportError:
     m1 = ('The menpo related utils are not imported. If '

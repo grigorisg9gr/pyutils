@@ -392,3 +392,21 @@ def access_ln_frame(points, info_txt, idx=None, frame_name=None,
     return PointCloud(pt)
 
 
+def concatenate_all_ims_from_list(ims, axis=-1):
+    """
+    Given a list of images (should be of the same size), it
+    concatenates all of them in a single image.
+    :param ims:   (list, images) List of images to concatenate.
+    :param axis:  (int, optional) The axis to concatenate ims. For typical images
+    if -1 it concatenates them horizontally, if 1 then concatenate vertically.
+    :return: Concatenated menpo image.
+    """
+    conc = []
+    for cnt, im in enumerate(ims):
+        if cnt == 0:
+            conc = im.pixels.copy()
+        else:
+            conc = np.concatenate((conc, im.pixels), axis=axis)
+    return Image(conc)
+
+
