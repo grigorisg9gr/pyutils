@@ -6,6 +6,7 @@ from time import strftime
 import socket
 from functools import reduce
 import operator
+import subprocess
 
 
 
@@ -181,3 +182,21 @@ def set_in_nested_path(root, items, value):
     """
     get_by_nested_path(root, items[:-1])[items[-1]] = value
 
+
+def popen(cmd, wait=True):
+    """
+    Thin wrapper around subprocess.Popen.
+    :param cmd: (str) The command to execute.
+    :param wait: (bool, optional) Whether to wait for the process to finish.
+    :return: The process and the return code.
+    """
+
+    """
+    Convenience function for the Popen of subprocess.
+    """
+    process = subprocess.Popen([cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, shell=True)
+    if wait:
+        returncode = process.wait()
+        return process, returncode
+    return process, -1

@@ -11,6 +11,7 @@ from menpo.image import Image
 from menpofit.visualize import view_image_multiple_landmarks
 
 from .path_related import mkdir_p
+from .auxiliary import popen
 try:
     from .personal import list_to_latex
 except ImportError:
