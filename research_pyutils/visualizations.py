@@ -180,6 +180,8 @@ def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=Non
             im = import_im(join(pb, fold, name_im))
         # # get the name for the sub-caption (legend).
         if legend_names is not None:
+            if '_' in legend_names[cnt]:
+                print('WARNING: `_` found on legend name, possibly issue with latex.')
             names_meth.append(legend_names[cnt])
         else:
             assert 0, 'Not implemented for now! Need to use map_to_name()'
@@ -198,7 +200,7 @@ def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=Non
                    '\n\\usepackage{graphicx}\\usepackage{subfig}'
                    '\\begin{document}\n'))
     list_to_latex(names_imout, wrap_subfloat=True, names_subfl=names_meth, pbl='',
-                  file_to_print=fo, caption='')
+                  file_to_print=fo, caption=False)
     fo.writelines('\\thispagestyle{empty}\\end{document}\n')
     fo.close()
 
