@@ -183,11 +183,20 @@ def set_in_nested_path(root, items, value):
     get_by_nested_path(root, items[:-1])[items[-1]] = value
 
 
-def popen(cmd, wait=True):
+def bytes2str(info):
+    """ Converts bytes to string. """
+    if isinstance(info, bytes):
+        info = info.decode("utf-8")
+    return info
+
+
+def popen(cmd, wait=True, verbose=False):
     """
     Thin wrapper around subprocess.Popen.
     :param cmd: (str) The command to execute.
     :param wait: (bool, optional) Whether to wait for the process to finish.
+    :param verbose: (bool, optional) If True, the output is printed real-time
+        in the terminal.
     :return: The process and the return code.
     """
 
@@ -197,6 +206,14 @@ def popen(cmd, wait=True):
     process = subprocess.Popen([cmd], stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, shell=True)
     if wait:
+        if verbose:
+            # # in this case, print the real-time output from terminal.
+            while True:
+                line = process.stdout.readline().rstrip()
+                if not line:
+                    break
+                print(bytes2str(line))
         returncode = process.wait()
         return process, returncode
     return process, -1
+
