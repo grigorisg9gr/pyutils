@@ -217,3 +217,16 @@ def popen(cmd, wait=True, verbose=False):
         return process, returncode
     return process, -1
 
+
+def export_pickle(obj, filename):
+    """It exports an object to a pickle.    """
+    with open(filename, 'wb') as handle:
+        pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def import_pickle(filename):
+    """It imports an object from a pickle.    """
+    with open(filename, 'rb') as handle:
+        obj = pickle.load(handle)
+    return obj
+
