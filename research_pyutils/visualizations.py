@@ -149,7 +149,7 @@ def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=Non
     :param name_im: (str) Name (stem + suffix) of the image to be imported from folds.
     :param legend_names: (optional, list or None) If provided, it should match in length the
         folds; each one will be respectively provided as a sub-caption to the respective image.
-    :param normalise: (optional, function or None) If not None, then the function accepts
+    :param normalise: (optional, list of functions or None) If not None, then the function accepts
         a menpo image and normalises it.
     :param allow_fail: (optional, list or bool) If bool, it is converted into a list of
         length(folds). The images from folds that do not exist
@@ -168,6 +168,9 @@ def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=Non
     # # each one of the folders has different permissions.
     if not isinstance(allow_fail, list):
         allow_fail = [allow_fail for _ in range(len(folds))]
+    # # if normalise is provided as a single boolean, convert into a list.
+    if not isinstance(normalise, list):
+        normalise = [normalise for _ in range(len(folds))]
 
     for cnt, fold in enumerate(folds):
         if allow_fail[cnt]:
@@ -186,8 +189,8 @@ def plot_image_latex_with_subcaptions(folds, pb, pout, name_im, legend_names=Non
         else:
             assert 0, 'Not implemented for now! Need to use map_to_name()'
         # # Optionally resize the image.
-        if normalise:
-            im = normalise(im)
+        if normalise[cnt]:
+            im = normalise[cnt](im)
         # # export the image into the disk and append the name exported in the list.
         nn = '{}_{}'.format(Path(fold).stem, im.path.name)
         mio.export_image(im, pout + nn, overwrite=overwr)
