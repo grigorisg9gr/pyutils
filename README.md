@@ -19,8 +19,8 @@ Specifically, the files are classified as following:
 #### **Installation**
 To install those tools, you can:
 * clone this repository with ``` git clone https://github.com/grigorisg9gr/pyutils.git```.
-* Pip install it with ```pip install --no-deps -e [path_you_cloned_it]```. This editable mode means that every time you modify the source files the content of the actual functions will be modified accordingly. Also, the no-deps arg means that the packages required should exist to run the functions, e.g. numpy or os for most files.
+* Pip install it with ```pip install --no-deps -e [path_you_cloned_it]```. With the editable mode every time you modify the source files the content of the actual functions will be modified accordingly. 
 
 #### **Feedback**
-If you do have any questions or improvements, feel free to open issues here or contribute right away. Feedback is always appreciated.
+If you do have any questions or improvements, feel free to open issues here or open a pull request. Feedback is always appreciated.
 
