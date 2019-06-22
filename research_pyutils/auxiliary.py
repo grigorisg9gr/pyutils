@@ -230,3 +230,25 @@ def import_pickle(filename):
         obj = pickle.load(handle)
     return obj
 
+
+def array_reshape_to_dims(arr, *dims, k=2):
+    """ 
+    Change the array shape to k dimensions. 
+    ARGS:
+        arr: Original array.
+        *dims: Optional argument with the leading
+            dimensions' shapes. If not provided,
+            the original arrays principal ones are used.
+        k: int, the total new dimensions of the array. 
+    """
+    if len(arr.shape) != k:
+        if len(list(dims)) > 0:
+            # # use the dimensions provided for the array.
+            if len(dims) == k:
+                return arr.reshape(tuple(dims))
+            return arr.reshape(tuple(dims) + (-1,))
+        # # keep the principal k-1 dims unchanged.
+        sh = arr.shape[:k-1]
+        return arr.reshape(sh + (-1,))
+    return arr
+

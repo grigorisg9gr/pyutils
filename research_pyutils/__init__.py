@@ -25,5 +25,6 @@ from .auxiliary import (execution_stats, compare_python_types,
                         whoami, populate_visual_options,
                         printtime, get_by_nested_path, 
                         set_in_nested_path, popen, bytes2str,
-                        import_pickle, export_pickle)
+                        import_pickle, export_pickle,
+                        array_reshape_to_dims)
 
