@@ -3,6 +3,7 @@
 .idea/*
 *.egg-info/*
 *tmp*.py
+*.json
 
 # personal testout files.
 personal.py
