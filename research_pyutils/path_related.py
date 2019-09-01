@@ -259,7 +259,7 @@ def count_files(path='.', ending='', directory=False, subdirs=False):
     return int(nr_files[:-1]) - subtr
 
 
-def folders_last_modification(path, return_vars=True, verbose=True):
+def folders_last_modification(path, return_vars=True, verbose=True, only_dir=False):
     """
     Iteratively computes the last modification of the files/subfolders
     in the path.
@@ -267,9 +267,21 @@ def folders_last_modification(path, return_vars=True, verbose=True):
     :param return_vars: (bool, optional) If True, return the last modification.
                         This is returned in a datetime format.
     :param verbose:  (bool, optional) If True, print the last modification time.
+    :param only_dir:  (bool, optional) If True, search also the filenames in 
+                      the leaf folders ONLY.
     :return:
     """
-    last_mod = max(getmtime(root) for root,_,_ in walk(path))
+    if only_dir:
+        last_mod = max(getmtime(root) for root,_,_ in walk(path))
+    else:
+        last_mod = getmtime(path)
+        for root, dirname, filename in walk(pb):
+            if len(dirname) == 0:
+                # # we are in a leaf folder, consider the files.
+                last_mod1 = max(getmtime(root) for fn in filename)
+                last_mod = max(last_mod, last_mod1)
+            # # get the modification of the root (folder); same as only_dir case.
+            last_mod = max(last_mod, getmtime(root))
     if verbose:
         import time
         print(time.ctime(last_mod))
