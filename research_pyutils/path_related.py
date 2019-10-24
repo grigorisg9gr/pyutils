@@ -276,7 +276,7 @@ def folders_last_modification(path, return_vars=True, verbose=True, only_dir=Fal
     else:
         last_mod = getmtime(path)
         for root, dirname, filename in walk(path):
-            if len(dirname) == 0:
+            if len(dirname) == 0 and len(filename) > 0:
                 # # we are in a leaf folder, consider the files.
                 last_mod1 = max(getmtime(join(root, fn)) for fn in filename)
                 last_mod = max(last_mod, last_mod1)
